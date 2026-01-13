@@ -1,5 +1,11 @@
-* INITIAL DD REVIEW
+INITIAL DD REVIEW
+* SUMMARY
   - lack of roster
-  = lack of JS
+  - lack of JS
   - complete in time?
   - completion date
+
+seanZ -- 2026-1-13 11:39
+DB
+* DB
+ - created game.py and initiated database creation
