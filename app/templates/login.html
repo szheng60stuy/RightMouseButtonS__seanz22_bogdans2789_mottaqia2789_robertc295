@@ -1,0 +1,28 @@
+{% block title %}{% endblock %}
+
+{% block content %}
+<div class="flex flex-col items-center justify-center min-h-[60vh] text-center max-w-2xl mx-auto">
+  <h1 class="text-3xl font-bold mb-4"></h1>
+  <p class="mb-6"></p>
+
+  {% if text %}
+    <p class="text-red-600 mb-3">{{ text|lower }}</p>
+  {% endif %}
+
+  <form action="{{ url_for('login') }}" method="POST" class="flex flex-col items-center gap-3 w-full max-w-sm">
+    <div class="w-full text-left">
+      <label class="font-medium">username</label>
+      <input type="text" name="username" required class="border border-gray-300 rounded px-3 py-2 mt-1 w-full">
+    </div>
+
+    <div class="w-full text-left">
+      <label class="font-medium">password</label>
+      <input type="password" name="password" required class="border border-gray-300 rounded px-3 py-2 mt-1 w-full">
+    </div>
+
+    <button type="submit" class="bg-amber-700 hover:bg-amber-800 text-white px-4 py-2 rounded font-medium w-full mt-2">login</button>
+  </form>
+
+  <p class="mt-4">new? <a href="{{ url_for('register') }}" class="text-amber-700 hover:underline font-medium">create an account</a></p>
+</div>
+{% endblock %}
