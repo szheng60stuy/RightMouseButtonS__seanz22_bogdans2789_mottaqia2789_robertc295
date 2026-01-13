@@ -1,0 +1,5 @@
+* INITIAL DD REVIEW
+  - lack of roster
+  = lack of JS
+  - complete in time?
+  - completion date
