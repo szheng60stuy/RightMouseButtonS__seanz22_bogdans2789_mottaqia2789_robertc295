@@ -9,3 +9,8 @@ seanZ -- 2026-1-13 11:39
 DB
 * DB
  - created game.py and initiated database creation
+
+mottaqiA2789 -- 2026-1-13 11:44
+- setup flask
+- created login.html, register.html, menu.html files
+- created login and register functionality
