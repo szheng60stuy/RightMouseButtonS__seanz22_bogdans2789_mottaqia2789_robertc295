@@ -1,13 +1,17 @@
 from flask import Flask, request, session, redirect, url_for, render_template
 import sqlite3
-from game import make_tables
-
+from game import make_tables, set_game, addTerritory
 app = Flask(__name__)
 app.secret_key = "secret_key_testing"
 DB_FILE = "conquest.db"
 
 def initialize_db():
   make_tables()
+  set_game()
+  addTerritory("Alaska", 1, 1)
+  addTerritory("Northwest Territory", 1, 1)
+  addTerritory("Greenland", 1, 1)
+  addTerritory("Iceland", 1, 1)
 
 @app.route("/", methods=['GET'])
 def index():

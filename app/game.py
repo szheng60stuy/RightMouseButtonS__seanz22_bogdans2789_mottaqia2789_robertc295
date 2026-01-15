@@ -104,6 +104,7 @@ def make_tables():
             armies INTEGER NOT NULL
         )"""
     )
+    c.execute("DROP TABLE IF EXISTS games")
     c.execute("""
         CREATE TABLE IF NOT EXISTS games ( 
             armies INTEGER NOT NULL,
@@ -136,6 +137,67 @@ def make_tables():
 
 ####################### GAME LOGIC HELPER FUNCTIONS ####################################
 
+def addTerritory(territory, player, army): #adds # of army to a territory and updates it to the player in games db
+	DB_FILE="conquest.db"
+	db = sqlite3.connect(DB_FILE)
+	c = db.cursor()
+	current = c.execute("SELECT armies FROM territories WHERE name = ?", (territory, )).fetchone()[0]
+	c.execute("UPDATE territories SET armies = ? WHERE name = ?", (current + army, territory))
+	if player == 1:
+		current = c.execute(f'SELECT p1 FROM games').fetchone()[0].split(',')
+		if current[0] == '':
+			current[0] = territory
+		else:
+			current.append(territory)
+		ownedplot = ""
+		for plot in current:
+			ownedplot += plot + ", "
+			print(ownedplot)
+		c.execute("UPDATE games SET p1 = ?", (ownedplot[0: len(ownedplot) - 2], ))
+	if player == 2:
+		current = c.execute(f'SELECT p2 FROM games').fetchone()[0].split(',')
+		if current[0] == '':
+			current[0] = territory
+		ownedplot = ""
+		for plot in current:
+			ownedplot += plot + ", "
+		c.execute("UPDATE games SET p2 = ?", (current[0: len(ownedplot) - 2]))
+	if player == 3:
+		current = c.execute(f'SELECT p3 FROM games').fetchone()[0].split(',')
+		if current[0] == '':
+			current[0] = territory
+		ownedplot = ""
+		for plot in current:
+			ownedplot += plot + ", "
+		c.execute("UPDATE games SET p3 = ?", (current[0: len(ownedplot) - 2]))
+	if player == 4:
+		current = c.execute(f'SELECT p4 FROM games').fetchone()[0].split(',')
+		if current[0] == '':
+			current[0] = territory
+		ownedplot = ""
+		for plot in current:
+			ownedplot += plot + ", "
+		c.execute("UPDATE games SET p4 = ?", (current[0: len(ownedplot) - 2]))
+	if player == 5:
+		current = c.execute(f'SELECT p5 FROM games').fetchone()[0].split(',')
+		if current[0] == '':
+			current[0] = territory
+		ownedplot = ""
+		for plot in current:
+			ownedplot += plot + ", "
+		c.execute("UPDATE games SET p5 = ?", (current[0: len(ownedplot) - 2]))
+	if player == 6:
+		current = c.execute(f'SELECT p6 FROM games').fetchone()[0].split(',')
+		if current[0] == '':
+			current[0] = territory
+		ownedplot = ""
+		for plot in current:
+			ownedplot += plot + ", "
+		c.execute("UPDATE games SET p6 = ?", (current[0: len(ownedplot) - 2]))
+	db.commit()
+	db.close()
+
+
 def availableSet(): #returns list of territories still unoccupied
 	DB_FILE="conquest.db"
 	db = sqlite3.connect(DB_FILE)
@@ -163,17 +225,17 @@ def check(territory, player): #checks if given player owns that territory
 	db = sqlite3.connect(DB_FILE)
 	c = db.cursor()
 	if player == 1:
-		check = c.execute(f'SELECT p1 FROM games').fetchone[0].split(',')
+		check = c.execute(f'SELECT p1 FROM games').fetchone()[0].split(',')
 	if player == 2:
-		check = c.execute(f'SELECT p2 FROM games').fetchone[0].split(',')
+		check = c.execute(f'SELECT p2 FROM games').fetchone()[0].split(',')
 	if player == 3:
-		check = c.execute(f'SELECT p3 FROM games').fetchone[0].split(',')
+		check = c.execute(f'SELECT p3 FROM games').fetchone()[0].split(',')
 	if player == 4:
-		check = c.execute(f'SELECT p4 FROM games').fetchone[0].split(',')
+		check = c.execute(f'SELECT p4 FROM games').fetchone()[0].split(',')
 	if player == 5:
-		check = c.execute(f'SELECT p5 FROM games').fetchone[0].split(',')
+		check = c.execute(f'SELECT p5 FROM games').fetchone()[0].split(',')
 	if player == 6:
-		check = c.execute(f'SELECT p6 FROM games').fetchone[0].split(',')
+		check = c.execute(f'SELECT p6 FROM games').fetchone()[0].split(',')
 	db.commit()
 	db.close()
 	if territory in check:
@@ -181,6 +243,6 @@ def check(territory, player): #checks if given player owns that territory
 	else:
 		return False
 
-#print(availableMove("Alaska", 0))
-#print(check("Alaska", 0))
-#set_game()
+#print(availableMove("Alaska", 1))
+#print(check("Alaska", 1))
+#print(availableSet())
