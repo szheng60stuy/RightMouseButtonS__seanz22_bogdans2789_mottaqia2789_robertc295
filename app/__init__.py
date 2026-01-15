@@ -1,81 +1,86 @@
 from flask import Flask, request, session, redirect, url_for, render_template
 import sqlite3
-app = Flask(__name__)
 
+app = Flask(__name__)
 app.secret_key = "secret_key_testing"
 DB_FILE = "risk.db"
 
 def initialize_db():
   db = sqlite3.connect(DB_FILE)
   c = db.cursor()
-
   c.execute("CREATE TABLE IF NOT EXISTS users(username TEXT PRIMARY KEY NOT NULL, password TEXT NOT NULL, games INTEGER);")
-
   db.commit()
   db.close()
 
-@app.route("/", methods=['GET', 'POST'])
+@app.route("/", methods=['GET'])
 def index():
   if 'username' in session:
-    return render_template("login.html")
-  else:
-    text = ""
-    return render_template("login.html", text=text)
+    return redirect(url_for('menu'))
+  return render_template("login.html", text="")
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-  if request.method == 'POST':
-    username = request.form['username']
-    password = request.form['password']
-    db = sqlite3.connect(DB_FILE)
-    c = db.cursor()
-    c.execute("SELECT * FROM users WHERE username = ?", (username,))
-    user = c.fetchone()
-    db.close()
-
-    if user == None or user[0] != username or user[1] != password:
-      print("username/password do not match our records")
-      text = "login failed, create new acc?"
-      return render_template('login.html', text=text)
-    elif user[0] == username and user[1] == password:
-      session['username'] = username
+  if request.method == 'GET':
+    if 'username' in session:
       return redirect(url_for('menu'))
-    else:
-      return redirect(url_for('index'))
-  return redirect(url_for('index'))
+    return render_template("login.html", text="")
+    
+  username = request.form.get("username", "").strip()
+  password = request.form.get("password", "")
+  
+  db = sqlite3.connect(DB_FILE)
+  c = db.cursor()
+  c.execute("SELECT username, password FROM users WHERE username = ?", (username,))
+  user = c.fetchone()
+  db.close()
+  if not user or user[1] != password:
+    text = "Login failed. Check username/password"
+    return render_template('login.html', text=text)
+  
+  session['username'] = username
+  return redirect(url_for('menu'))
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
-  if request.method == 'POST':
-    db = sqlite3.connect(DB_FILE)
-    c = db.cursor()
-    username = request.form['username']
-    password = request.form['password']
+  if request.method == 'GET':
+    if 'username' in session:
+      return redirect(url_for('menu'))
+    return render_template("login.html", text="")
+  
+  username = request.form.get("username", "").strip()
+  password = request.form.get("password", "")
+  
+  if not username or not password:
+    text = "Username and password cannot be empty!"
+    return render_template('register.html', text=text)
+  
+  db = sqlite3.connect(DB_FILE)
+  c = db.cursor()
+  c.execute("SELECT username FROM users WHERE username = ?", (username,))
+  existing_user = c.fetchone()
 
-    c.execute("SELECT * FROM users WHERE username = ?", (username,))
-    existing_user = c.fetchone()
-
-    if existing_user:
-      db.close()
-      text = "username already taken, try another one!"
-      return render_template('register.html', text = text)
-
-    c.execute(
-        "INSERT INTO users VALUES (?, ?, ?)",
-        (username, password, 0)
-    )
-    db.commit()
+  if existing_user:
     db.close()
-    session['username'] = username
-    return redirect(url_for('menu'))
-  return render_template('register.html')
+    text = "Username already take!"
+    return render_template('register.html', text=text)
+  
+  c.execute("INSERT INTO users (username, password, games) VALUES (?, ?, ?);", (username, password, 0))
+  db.commit()
+  db.close()
 
+  session['username'] = username
+  return redirect(url_for('menu'))
 
 @app.route("/menu", methods=["GET", "POST"])
 def menu():
     if 'username' not in session:
-        return redirect(url_for('index'))
+        return redirect(url_for('login'))
     return render_template("menu.html", username=session['username'])
+
+@app.route("/logout", methods=["GET"])
+def logout():
+    session.clear()
+    return redirect(url_for('index'))
 
 if __name__ == "__main__":
     initialize_db()
