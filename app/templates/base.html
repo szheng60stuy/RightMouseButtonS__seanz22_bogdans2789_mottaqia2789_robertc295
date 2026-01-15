@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">    
+    <head>
+        <meta charset="utf-8">
+        <title>{% block title %}Conquest{% endblock %}</title>
+    </head>
+    <body>
+        {% if session.get("username") %}
+        <nav>
+            <a href="{{ url_for('menu') }}">Menu</a> |
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </nav>
+        <hr>
+        {% endif %}
+        
+        {% block content %}{% endblock %}
+    </body>
+</html>

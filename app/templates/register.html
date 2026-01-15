@@ -1,29 +1,28 @@
-{% block title %}{% endblock %}
+{% extends "base.html" %}
+{% block title %}Register | Conquest{% endblock %}
 
 {% block content %}
-<div>
-  <h1></h1>
+<h1>Register</h1>
 
-  {% if text %}
-    <p>{{ text|lower }}</p>
-  {% endif %}
+{%if text%}
+  <p style="color:red;">{{ text }}</p>
+{% endif %}
 
-  <p></p>
+<form action="{{ url_for('register') }}" method="POST">
+  <div>
+    <label>Username</label>
+    <input type="text" name="username" required>
+  </div>
 
-  <form action="{{ url_for('register') }}" method="POST">
-    <div>
-      <label>username</label>
-      <input type="text" name="username">
-    </div>
+  <div>
+    <label>Password</label>
+    <input type="password" name="password" required>
+  </div>
 
-    <div>
-      <label>password</label>
-      <input type="password" name="password">
-    </div>
+  <button type="submit">Create Account</button>
+</form>
 
-    <button type="submit">register</button>
-  </form>
-
-  <p>already have an account? <a href="{{ url_for('login') }}">login here</a></p>
-</div>
+<p>
+  Already have an account? <a href="{{ url_for('login') }}">Login here</a>.
+</p>
 {% endblock %}

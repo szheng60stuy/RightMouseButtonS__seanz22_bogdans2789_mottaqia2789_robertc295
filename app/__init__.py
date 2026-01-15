@@ -45,7 +45,7 @@ def register():
   if request.method == 'GET':
     if 'username' in session:
       return redirect(url_for('menu'))
-    return render_template("login.html", text="")
+    return render_template("register.html", text="")
   
   username = request.form.get("username", "").strip()
   password = request.form.get("password", "")
