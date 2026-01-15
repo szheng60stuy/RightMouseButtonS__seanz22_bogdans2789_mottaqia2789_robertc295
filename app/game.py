@@ -6,6 +6,8 @@
 
 import sqlite3
 
+####################################### SETUP ###################################
+
 def set_territories():
 	map_info = {
     # --- North America ---
@@ -91,7 +93,8 @@ def make_tables():
     c.execute("""
         CREATE TABLE IF NOT EXISTS games (
             id INTEGER PRIMARY KEY NOT NULL, 
-            armies INTEGER NOT NULL, 
+            armies INTEGER NOT NULL,
+            territories TEXT NOT NULL, 
             turn INTEGER NOT NULL 
         )"""
     ) # id maybe needed? armies in the format by players [23, 42, 23, 0, 0, 0] means 3 players are left, turn here if we need it
@@ -111,3 +114,7 @@ def make_tables():
     if count != 42:
     	print("territories info made!")
     	set_territories()
+
+####################### GAME LOGIC HELPER FUNCTIONS ####################################
+
+#def available(mode):
