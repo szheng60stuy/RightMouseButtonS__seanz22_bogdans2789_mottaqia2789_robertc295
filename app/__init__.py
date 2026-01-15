@@ -7,11 +7,15 @@ DB_FILE = "conquest.db"
 
 def initialize_db():
   make_tables()
-  set_game()
-  addTerritory("Alaska", 1, 1)
-  addTerritory("Northwest Territory", 1, 1)
-  addTerritory("Greenland", 1, 1)
-  addTerritory("Iceland", 1, 1)
+  # set_game() #test purposes
+  # addTerritory("Alaska", 1, 1)
+  # addTerritory("Northwest Territory", 1, 1)
+  # addTerritory("Greenland", 1, 1)
+  # addTerritory("Iceland", 1, 1)
+  # addTerritory("Ontario", 1, 1)
+  # addTerritory("Western United States", 1, 1)
+  # addTerritory("Ukraine", 1, 1)
+  # # test purposes
 
 
 @app.route("/", methods=['GET'])
