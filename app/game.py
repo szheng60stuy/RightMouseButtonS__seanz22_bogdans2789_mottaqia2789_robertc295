@@ -144,18 +144,17 @@ def addTerritory(territory, player, army): #adds # of army to a territory and up
 	current = c.execute("SELECT armies FROM territories WHERE name = ?", (territory, )).fetchone()[0]
 	c.execute("UPDATE territories SET armies = ? WHERE name = ?", (current + army, territory))
 	if player == 1:
-		current = c.execute(f'SELECT p1 FROM games').fetchone()[0].split(',')
+		current = c.execute(f'SELECT p1 FROM games').fetchone()[0].split(', ')
 		if current[0] == '':
-			current[0] = territory
+			current[0] = territory.strip()
 		else:
-			current.append(territory)
+			current.append(territory.strip())
 		ownedplot = ""
 		for plot in current:
 			ownedplot += plot + ", "
-			print(ownedplot)
 		c.execute("UPDATE games SET p1 = ?", (ownedplot[0: len(ownedplot) - 2], ))
 	if player == 2:
-		current = c.execute(f'SELECT p2 FROM games').fetchone()[0].split(',')
+		current = c.execute(f'SELECT p2 FROM games').fetchone()[0].split(', ')
 		if current[0] == '':
 			current[0] = territory
 		ownedplot = ""
@@ -163,7 +162,7 @@ def addTerritory(territory, player, army): #adds # of army to a territory and up
 			ownedplot += plot + ", "
 		c.execute("UPDATE games SET p2 = ?", (current[0: len(ownedplot) - 2]))
 	if player == 3:
-		current = c.execute(f'SELECT p3 FROM games').fetchone()[0].split(',')
+		current = c.execute(f'SELECT p3 FROM games').fetchone()[0].split(', ')
 		if current[0] == '':
 			current[0] = territory
 		ownedplot = ""
@@ -171,7 +170,7 @@ def addTerritory(territory, player, army): #adds # of army to a territory and up
 			ownedplot += plot + ", "
 		c.execute("UPDATE games SET p3 = ?", (current[0: len(ownedplot) - 2]))
 	if player == 4:
-		current = c.execute(f'SELECT p4 FROM games').fetchone()[0].split(',')
+		current = c.execute(f'SELECT p4 FROM games').fetchone()[0].split(', ')
 		if current[0] == '':
 			current[0] = territory
 		ownedplot = ""
@@ -179,7 +178,7 @@ def addTerritory(territory, player, army): #adds # of army to a territory and up
 			ownedplot += plot + ", "
 		c.execute("UPDATE games SET p4 = ?", (current[0: len(ownedplot) - 2]))
 	if player == 5:
-		current = c.execute(f'SELECT p5 FROM games').fetchone()[0].split(',')
+		current = c.execute(f'SELECT p5 FROM games').fetchone()[0].split(', ')
 		if current[0] == '':
 			current[0] = territory
 		ownedplot = ""
@@ -187,7 +186,7 @@ def addTerritory(territory, player, army): #adds # of army to a territory and up
 			ownedplot += plot + ", "
 		c.execute("UPDATE games SET p5 = ?", (current[0: len(ownedplot) - 2]))
 	if player == 6:
-		current = c.execute(f'SELECT p6 FROM games').fetchone()[0].split(',')
+		current = c.execute(f'SELECT p6 FROM games').fetchone()[0].split(', ')
 		if current[0] == '':
 			current[0] = territory
 		ownedplot = ""
