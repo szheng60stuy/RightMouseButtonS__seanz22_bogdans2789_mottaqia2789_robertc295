@@ -79,6 +79,12 @@ def logout():
     session.clear()
     return redirect(url_for('index'))
 
+@app.route("/game-test")
+def game_test():
+    if "username" not in session:
+        return redirect(url_for("login"))
+    return render_template("game.html")
+
 if __name__ == "__main__":
     initialize_db()
     app.debug = True
