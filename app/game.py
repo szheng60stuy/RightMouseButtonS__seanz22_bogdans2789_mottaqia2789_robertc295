@@ -209,32 +209,62 @@ def availableSet(): #returns list of territories still unoccupied
 	db.close()
 	return result
 
-def availableMove(territory, player): #returns list of territories available for movement given a chosen territory and player 
+def flatten(nestList):
+	lst = []
+	for thing in nestList:
+		if isinstance(thing, list): #checks if thing is a list
+			lst.extend(flatten(thing)) #extend just connects two lists together
+		else:
+			lst.append(thing)
+	return lst
+
+def aMoveHelp(territory, player, tried): #helper function for availableMove
 	DB_FILE="conquest.db"
 	db = sqlite3.connect(DB_FILE)
 	c = db.cursor()
-
-	result = c.execute(f'SELECT connected FROM territories').fetchone()[0].split(',')
+	if check(territory, player) == False:
+		print("this territory doesnt belong to this player")
+		return None
+	result = [territory]
+	connects = c.execute(f'SELECT connected FROM territories WHERE name = ?', (territory, )).fetchone()[0].split(', ')
+	#print("possible: ")
+	#print(connects)
+	#print("tried: ")
+	#print(tried)
+	for connect in connects:
+		if connect in tried:
+			connects.remove(connect)
+	for connect in connects:
+		if connect not in tried:
+			tried.append(connect)
+			#print(connect)
+			if check(connect, player):
+				#print(connect + " made it")
+				result.append(aMoveHelp(connect, player, tried))
 	db.commit()
 	db.close()
 	return result
+
+def availableMove(territory, player): #returns list of territories available for movement given a chosen territory and player 
+	nestedList = aMoveHelp(territory, player, [territory]) #this returns a nested list like ['Northwest Territory', ['Alaska'], ['Ontario', ['Greenland', ['Iceland']], ['Western United States']]]
+	return flatten(nestedList)
 
 def check(territory, player): #checks if given player owns that territory
 	DB_FILE="conquest.db"
 	db = sqlite3.connect(DB_FILE)
 	c = db.cursor()
 	if player == 1:
-		check = c.execute(f'SELECT p1 FROM games').fetchone()[0].split(',')
+		check = c.execute(f'SELECT p1 FROM games').fetchone()[0].split(', ')
 	if player == 2:
-		check = c.execute(f'SELECT p2 FROM games').fetchone()[0].split(',')
+		check = c.execute(f'SELECT p2 FROM games').fetchone()[0].split(', ')
 	if player == 3:
-		check = c.execute(f'SELECT p3 FROM games').fetchone()[0].split(',')
+		check = c.execute(f'SELECT p3 FROM games').fetchone()[0].split(', ')
 	if player == 4:
-		check = c.execute(f'SELECT p4 FROM games').fetchone()[0].split(',')
+		check = c.execute(f'SELECT p4 FROM games').fetchone()[0].split(', ')
 	if player == 5:
-		check = c.execute(f'SELECT p5 FROM games').fetchone()[0].split(',')
+		check = c.execute(f'SELECT p5 FROM games').fetchone()[0].split(', ')
 	if player == 6:
-		check = c.execute(f'SELECT p6 FROM games').fetchone()[0].split(',')
+		check = c.execute(f'SELECT p6 FROM games').fetchone()[0].split(', ')
 	db.commit()
 	db.close()
 	if territory in check:
@@ -242,6 +272,27 @@ def check(territory, player): #checks if given player owns that territory
 	else:
 		return False
 
-#print(availableMove("Alaska", 1))
-#print(check("Alaska", 1))
+def availableAttack(player): #returns list of territories the player can attack
+	DB_FILE="conquest.db"
+	db = sqlite3.connect(DB_FILE)
+	c = db.cursor()
+	result = []
+	tried = []
+	owned = c.execute(f'SELECT p1 FROM games').fetchone()[0].split(', ')
+	for plot in owned:
+		army = c.execute("SELECT armies FROM territories WHERE name = ?", (plot, )).fetchone()[0]
+		if army > 1:
+			connects = c.execute(f'SELECT connected FROM territories WHERE name = ?', (plot, )).fetchone()[0].split(', ')
+			for connect in connects:
+				if connect not in tried and connect not in result and connect not in owned:
+					result.append(connect)
+				if connect not in tried:
+					tried.append(connect)
+		if plot not in tried:
+			tried.append(plot)
+	return result
+
+#print(availableMove("Northwest Territory", 1))
+#print(availableAttack(1))
+#print(check("Greenland", 1))
 #print(availableSet())
