@@ -17,7 +17,7 @@ flask
 - created login.html, register.html, menu.html files
 - created login and register functionality
 
-seanZ
+seanZ -- 2026-1-14 10:34
 DB
 * NEW CHANGES:
 - finished db tables (territories and games)
