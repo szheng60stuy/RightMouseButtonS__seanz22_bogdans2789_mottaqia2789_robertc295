@@ -8,6 +8,16 @@ import sqlite3
 
 ####################################### SETUP ###################################
 
+def set_game():
+	DB_FILE="conquest.db"
+	db = sqlite3.connect(DB_FILE)
+	c = db.cursor()
+	command = 'INSERT INTO games VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+	vars = (0, '', '', '', '', '', '', 0)
+	c.execute(command, vars)
+	db.commit()
+	db.close()
+
 def set_territories():
 	map_info = {
     # --- North America ---
@@ -95,14 +105,18 @@ def make_tables():
         )"""
     )
     c.execute("""
-        CREATE TABLE IF NOT EXISTS games (
-            id INTEGER PRIMARY KEY NOT NULL, 
+        CREATE TABLE IF NOT EXISTS games ( 
             armies INTEGER NOT NULL,
-            territories TEXT NOT NULL, 
+            p1 TEXT NOT NULL, 
+            p2 TEXT NOT NULL, 
+            p3 TEXT NOT NULL, 
+            p4 TEXT NOT NULL, 
+            p5 TEXT NOT NULL, 
+            p6 TEXT NOT NULL, 
             turn INTEGER NOT NULL 
         )"""
-    ) # id maybe needed? armies in the format by players [23, 42, 23, 0, 0, 0] means 3 players are left, turn here if we need it
-      # territories will be in the form of [list of player 1 territories], [list of player 2 territories], etc.
+    ) # id maybe needed? armies in the format by players 23, 42, 23, 0, 0, 0 means 3 players are left, turn here if we need it
+      # p1, p2, ... are just the territories each player owns
     c.execute("""
     	CREATE TABLE IF NOT EXISTS users(
     		username TEXT PRIMARY KEY NOT NULL, 
@@ -138,9 +152,35 @@ def availableMove(territory, player): #returns list of territories available for
 	DB_FILE="conquest.db"
 	db = sqlite3.connect(DB_FILE)
 	c = db.cursor()
-	result = []
-	test = c.execute(f'SELECT connected FROM territories').fetchone()[0][0]
-	return test
+
+	result = c.execute(f'SELECT connected FROM territories').fetchone()[0].split(',')
+	db.commit()
+	db.close()
+	return result
+
+def check(territory, player): #checks if given player owns that territory
+	DB_FILE="conquest.db"
+	db = sqlite3.connect(DB_FILE)
+	c = db.cursor()
+	if player == 1:
+		check = c.execute(f'SELECT p1 FROM games').fetchone[0].split(',')
+	if player == 2:
+		check = c.execute(f'SELECT p2 FROM games').fetchone[0].split(',')
+	if player == 3:
+		check = c.execute(f'SELECT p3 FROM games').fetchone[0].split(',')
+	if player == 4:
+		check = c.execute(f'SELECT p4 FROM games').fetchone[0].split(',')
+	if player == 5:
+		check = c.execute(f'SELECT p5 FROM games').fetchone[0].split(',')
+	if player == 6:
+		check = c.execute(f'SELECT p6 FROM games').fetchone[0].split(',')
+	db.commit()
+	db.close()
+	if territory in check:
+		return True
+	else:
+		return False
 
 #print(availableMove("Alaska", 0))
-
+#print(check("Alaska", 0))
+#set_game()
