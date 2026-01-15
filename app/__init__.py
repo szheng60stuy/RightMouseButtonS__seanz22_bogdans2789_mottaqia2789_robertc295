@@ -13,6 +13,7 @@ def initialize_db():
   addTerritory("Greenland", 1, 1)
   addTerritory("Iceland", 1, 1)
 
+
 @app.route("/", methods=['GET'])
 def index():
   if 'username' in session:
@@ -25,10 +26,10 @@ def login():
     if 'username' in session:
       return redirect(url_for('menu'))
     return render_template("login.html", text="")
-    
+
   username = request.form.get("username", "").strip()
   password = request.form.get("password", "")
-  
+
   db = sqlite3.connect(DB_FILE)
   c = db.cursor()
   c.execute("SELECT username, password FROM users WHERE username = ?", (username,))
@@ -37,7 +38,7 @@ def login():
   if not user or user[1] != password:
     text = "Login failed. Check username/password"
     return render_template('login.html', text=text)
-  
+
   session['username'] = username
   return redirect(url_for('menu'))
 
@@ -47,14 +48,14 @@ def register():
     if 'username' in session:
       return redirect(url_for('menu'))
     return render_template("register.html", text="")
-  
+
   username = request.form.get("username", "").strip()
   password = request.form.get("password", "")
-  
+
   if not username or not password:
     text = "Username and password cannot be empty!"
     return render_template('register.html', text=text)
-  
+
   db = sqlite3.connect(DB_FILE)
   c = db.cursor()
   c.execute("SELECT username FROM users WHERE username = ?", (username,))
@@ -64,7 +65,7 @@ def register():
     db.close()
     text = "Username already take!"
     return render_template('register.html', text=text)
-  
+
   c.execute("INSERT INTO users (username, password, games) VALUES (?, ?, ?);", (username, password, 0))
   db.commit()
   db.close()
