@@ -1,6 +1,6 @@
-from flask import Flask, request, session, redirect, url_for, render_template
+from flask import Flask, request, session, redirect, url_for, render_template, jsonify
 import sqlite3
-from game import make_tables, set_game, addTerritory
+import game
 app = Flask(__name__)
 app.secret_key = "secret_key_testing"
 DB_FILE = "conquest.db"
@@ -93,6 +93,27 @@ def game_test():
     if "username" not in session:
         return redirect(url_for("login"))
     return render_template("game.html")
+
+
+@app.route('/addTerritory', methods=['POST'])
+def addTerritory():
+    data = request.get_json()
+    game.addTerritory(data['territory'], data['player'], data['army'])
+
+@app.route('/availableSet', methods=['POST'])
+def availableSet():
+    out = game.availableSet()
+    return jsonify(out=out)
+
+@app.route('/availableMove', methods=['POST'])
+def availableMove():
+    data = request.get_json()
+    out = game.availableMove(data['territory'], data['player'])
+    return jsonify(out=out)
+
+@app.route('/set_game', methods=['POST'])
+def set_game():
+    game.set_game()
 
 if __name__ == "__main__":
     initialize_db()
