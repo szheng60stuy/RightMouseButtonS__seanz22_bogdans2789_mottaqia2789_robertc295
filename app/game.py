@@ -70,8 +70,12 @@ def set_territories():
 	c = db.cursor()
 	ID = 0
 	for territory in map_info:
+		connected = map_info[territory][1:]
+		connectedstr = ""
+		for plot in connected:
+			connectedstr += plot + ", "
 		command = 'INSERT INTO territories VALUES (?, ?, ?, ?, ?)'
-		vars = (ID, territory, str(map_info[territory][1:]), str(map_info[territory][0]), 0)
+		vars = (ID, territory, connectedstr[0:len(connectedstr) - 2], str(map_info[territory][0]), 0)
 		c.execute(command, vars)
 		ID += 1
 	db.commit()
@@ -98,6 +102,7 @@ def make_tables():
             turn INTEGER NOT NULL 
         )"""
     ) # id maybe needed? armies in the format by players [23, 42, 23, 0, 0, 0] means 3 players are left, turn here if we need it
+      # territories will be in the form of [list of player 1 territories], [list of player 2 territories], etc.
     c.execute("""
     	CREATE TABLE IF NOT EXISTS users(
     		username TEXT PRIMARY KEY NOT NULL, 
@@ -117,4 +122,25 @@ def make_tables():
 
 ####################### GAME LOGIC HELPER FUNCTIONS ####################################
 
-#def available(mode):
+def availableSet(): #returns list of territories still unoccupied
+	DB_FILE="conquest.db"
+	db = sqlite3.connect(DB_FILE)
+	c = db.cursor()
+	result = []
+	unoccupied= c.execute(f'SELECT name FROM territories WHERE armies = 0').fetchall()
+	for name in unoccupied:
+		result.append(name[0])
+	db.commit()
+	db.close()
+	return result
+
+def availableMove(territory, player): #returns list of territories available for movement given a chosen territory and player 
+	DB_FILE="conquest.db"
+	db = sqlite3.connect(DB_FILE)
+	c = db.cursor()
+	result = []
+	test = c.execute(f'SELECT connected FROM territories').fetchone()[0][0]
+	return test
+
+#print(availableMove("Alaska", 0))
+
