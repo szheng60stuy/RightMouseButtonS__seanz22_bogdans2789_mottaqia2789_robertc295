@@ -4,8 +4,8 @@
  - Me and my group are recreating a simplified version of risk. Provide a python dictionary that includes all the territories in risk, attached by a list of territories they are connected to, with the continent group they belong in as the first item in that list. For example "Alaska" : ["North America", "Kamchatka", "Northwest Territory", "Alberta"]
 
 * Output: 
- - risk_map = {
-    # --- North America ---
+ 	risk_map = {
+     --- North America ---
     "Alaska": ["North America", "Northwest Territory", "Alberta", "Kamchatka"],
     "Northwest Territory": ["North America", "Alaska", "Alberta", "Ontario", "Greenland"],
     "Greenland": ["North America", "Northwest Territory", "Ontario", "Quebec", "Iceland"],
@@ -16,13 +16,13 @@
     "Eastern United States": ["North America", "Ontario", "Quebec", "Western United States", "Central America"],
     "Central America": ["North America", "Western United States", "Eastern United States", "Venezuela"],
 
-    # --- South America ---
+     --- South America ---
     "Venezuela": ["South America", "Central America", "Brazil", "Peru"],
     "Peru": ["South America", "Venezuela", "Brazil", "Argentina"],
     "Brazil": ["South America", "Venezuela", "Peru", "Argentina", "North Africa"],
     "Argentina": ["South America", "Peru", "Brazil"],
 
-    # --- Europe ---
+     --- Europe ---
     "Iceland": ["Europe", "Greenland", "Great Britain", "Scandinavia"],
     "Scandinavia": ["Europe", "Iceland", "Northern Europe", "Ukraine"],
     "Great Britain": ["Europe", "Iceland", "Scandinavia", "Northern Europe", "Western Europe"],
@@ -30,7 +30,7 @@
     "Western Europe": ["Europe", "Great Britain", "Northern Europe", "Southern Europe", "North Africa"],
     "Southern Europe": ["Europe", "Western Europe", "Northern Europe", "Ukraine", "Middle East", "Egypt"],
 
-    # --- Africa ---
+     --- Africa ---
     "North Africa": ["Africa", "Brazil", "Western Europe", "Southern Europe", "Egypt", "East Africa", "Congo"],
     "Egypt": ["Africa", "North Africa", "Southern Europe", "Middle East", "East Africa"],
     "East Africa": ["Africa", "Egypt", "North Africa", "Congo", "South Africa", "Madagascar", "Middle East"],
@@ -38,7 +38,7 @@
     "South Africa": ["Africa", "Congo", "East Africa", "Madagascar"],
     "Madagascar": ["Africa", "South Africa", "East Africa"],
 
-    # --- Asia ---
+     --- Asia ---
     "Ural": ["Asia", "Ukraine", "Siberia", "China", "Afghanistan"],
     "Siberia": ["Asia", "Ural", "Yakutsk", "Irkutsk", "Mongolia", "China"],
     "Yakutsk": ["Asia", "Siberia", "Irkutsk", "Kamchatka"],
@@ -53,7 +53,7 @@
     "Siam": ["Asia", "India", "China", "Indonesia"],
     "Ukraine": ["Asia", "Scandinavia", "Northern Europe", "Southern Europe", "Ural", "Afghanistan"],
 
-    # --- Australia ---
+     --- Australia ---
     "Indonesia": ["Australia", "Siam", "New Guinea", "Western Australia"],
     "New Guinea": ["Australia", "Indonesia", "Western Australia", "Eastern Australia"],
     "Western Australia": ["Australia", "Indonesia", "New Guinea", "Eastern Australia"],
