@@ -60,7 +60,8 @@ const territories = {
   
   const layer = document.getElementById("layer4"); // contains the 42 territories
   const selectedEl = document.getElementById("selected"); // get selected territory display
-  
+  const defaultColor = "#eaeaea";
+
   let selectedId = null;  
   let lasthighlighted = [];
   
@@ -101,7 +102,7 @@ const territories = {
   // animations and event listeners for each territory
   layer.querySelectorAll("path").forEach(p => {
     p.style.cursor = "pointer";
-    p.style.fill = "#eaeaea";          // default territory color
+    p.style.fill = defaultColor;
     p.style.transition = "fill 120ms, stroke-width 120ms";
     p.style.stroke = "#111";
     p.style.strokeWidth = "1";
