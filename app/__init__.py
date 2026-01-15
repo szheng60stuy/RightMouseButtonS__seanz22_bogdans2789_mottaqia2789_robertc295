@@ -1,16 +1,13 @@
 from flask import Flask, request, session, redirect, url_for, render_template
 import sqlite3
+from game import make_tables
 
 app = Flask(__name__)
 app.secret_key = "secret_key_testing"
 DB_FILE = "risk.db"
 
 def initialize_db():
-  db = sqlite3.connect(DB_FILE)
-  c = db.cursor()
-  c.execute("CREATE TABLE IF NOT EXISTS users(username TEXT PRIMARY KEY NOT NULL, password TEXT NOT NULL, games INTEGER);")
-  db.commit()
-  db.close()
+  make_tables()
 
 @app.route("/", methods=['GET'])
 def index():
