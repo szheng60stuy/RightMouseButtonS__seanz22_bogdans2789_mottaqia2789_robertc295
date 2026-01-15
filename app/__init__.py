@@ -4,7 +4,7 @@ from game import make_tables
 
 app = Flask(__name__)
 app.secret_key = "secret_key_testing"
-DB_FILE = "risk.db"
+DB_FILE = "conquest.db"
 
 def initialize_db():
   make_tables()
