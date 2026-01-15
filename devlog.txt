@@ -23,3 +23,8 @@ DB
 - finished db tables (territories and games)
 - moved users db creation to game.py
 - connected create_tables() to init where it is called
+
+bogdanS2789 -- 2025-1-13
+game.js
+* NEW CAHNGES:
+- working on game logic

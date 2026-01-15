@@ -5,6 +5,7 @@
 # 12/22/2025
 
 import sqlite3
+import random
 
 ####################################### SETUP ###################################
 
@@ -90,23 +91,23 @@ def make_tables():
             id INTEGER PRIMARY KEY NOT NULL,
             name TEXT NOT NULL,
             connected TEXT NOT NULL,
-            Cgroup TEXT NOT NULL, 
+            Cgroup TEXT NOT NULL,
             armies INTEGER NOT NULL
         )"""
     )
     c.execute("""
         CREATE TABLE IF NOT EXISTS games (
-            id INTEGER PRIMARY KEY NOT NULL, 
+            id INTEGER PRIMARY KEY NOT NULL,
             armies INTEGER NOT NULL,
-            territories TEXT NOT NULL, 
-            turn INTEGER NOT NULL 
+            territories TEXT NOT NULL,
+            turn INTEGER NOT NULL
         )"""
     ) # id maybe needed? armies in the format by players [23, 42, 23, 0, 0, 0] means 3 players are left, turn here if we need it
       # territories will be in the form of [list of player 1 territories], [list of player 2 territories], etc.
     c.execute("""
     	CREATE TABLE IF NOT EXISTS users(
-    		username TEXT PRIMARY KEY NOT NULL, 
-    		password TEXT NOT NULL, 
+    		username TEXT PRIMARY KEY NOT NULL,
+    		password TEXT NOT NULL,
     		games INTEGER
     	)"""
     )
@@ -134,7 +135,7 @@ def availableSet(): #returns list of territories still unoccupied
 	db.close()
 	return result
 
-def availableMove(territory, player): #returns list of territories available for movement given a chosen territory and player 
+def availableMove(territory, player): #returns list of territories available for movement given a chosen territory and player
 	DB_FILE="conquest.db"
 	db = sqlite3.connect(DB_FILE)
 	c = db.cursor()
@@ -144,3 +145,18 @@ def availableMove(territory, player): #returns list of territories available for
 
 #print(availableMove("Alaska", 0))
 
+def attackTerritory(territory, player, from):
+	DB_FILE="conquest.db"
+	db = sqlite3.connect(DB_FILE)
+	c = db.cursor()
+	if (from in c.execute(f'SLECT connected FROM territories WHERE name = {territory}')):
+		if (random.randint(0,1) == 1): #attack success
+			armiesOrig = c.execute(f'SELECT armies FROM territories WHERE name = {territory}')-1
+			if (armiesOrig<1):
+				armiesOrig = c.execute(f'SELECT armies FROM territories WHERE name = {from}')-1
+				c.execute(f'UPDATE territories SET armies = 1 WHERE name = {from}')
+				#SEAN ADD CODE TO CHANGE OWNERSHIP OF TARGET TERRITORY
+			c.execute(f'UPDATE territories SET armies = {armiesOrig} WHERE name = {territory}')
+		else: #attack fail
+			c.execute(f'UPDATE territories SET armies = {c.execute(f'SELECT armies FROM territories WHERE name = {from}')-1} WHERE name = {from}')
+	return test
