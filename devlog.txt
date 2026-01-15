@@ -17,6 +17,11 @@ flask
 - created login.html, register.html, menu.html files
 - created login and register functionality
 
+bogdanS2789 -- 2026-1-13
+game.js
+* NEW CAHNGES:
+- working on game logic
+
 seanZ -- 2026-1-14 10:34
 DB
 * NEW CHANGES:
@@ -32,3 +37,14 @@ GAME LOGIC
 - Added trio available functions for setting up, moving, and attacking (they return list of territories for respective tasks)
 - Added check(territory, player) to check if a player owns a given territory
 - fully fixed and optimized db tables for use 
+bogdanS2789 -- 2026-1-15 1:05
+game.py
+* NEW CHANGES:
+- further work on attack
+
+mottaqiA2789 -- 2026-1-15 1:22
+map & code cleanup & base.html
+* NEW CHANGES:
+- added interactive map, includes animations for hovering and highlights selected territory + surrounding territory
+- cleaned code in html files
+- created base.html but no css yet
