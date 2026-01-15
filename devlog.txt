@@ -29,14 +29,6 @@ DB
 - moved users db creation to game.py
 - connected create_tables() to init where it is called
 
-seanZ -- 2026-1-15 2:44
-GAME LOGIC
-* NEW CHANGES:
-- game.py DONE (99.999% certainty)
-- Added AddTerritories(territory, player)
-- Added trio available functions for setting up, moving, and attacking (they return list of territories for respective tasks)
-- Added check(territory, player) to check if a player owns a given territory
-- fully fixed and optimized db tables for use 
 bogdanS2789 -- 2026-1-15 1:05
 game.py
 * NEW CHANGES:
@@ -48,3 +40,13 @@ map & code cleanup & base.html
 - added interactive map, includes animations for hovering and highlights selected territory + surrounding territory
 - cleaned code in html files
 - created base.html but no css yet
+
+
+seanZ -- 2026-1-15 2:44
+GAME LOGIC
+* NEW CHANGES:
+- game.py DONE (99.999% certainty)
+- Added AddTerritories(territory, player)
+- Added trio available functions for setting up, moving, and attacking (they return list of territories for respective tasks)
+- Added check(territory, player) to check if a player owns a given territory
+- fully fixed and optimized db tables for use 
