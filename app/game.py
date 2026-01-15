@@ -9,6 +9,16 @@ import random
 
 ####################################### SETUP ###################################
 
+def set_game():
+	DB_FILE="conquest.db"
+	db = sqlite3.connect(DB_FILE)
+	c = db.cursor()
+	command = 'INSERT INTO games VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+	vars = (0, '', '', '', '', '', '', 0)
+	c.execute(command, vars)
+	db.commit()
+	db.close()
+
 def set_territories():
 	map_info = {
     # --- North America ---
@@ -95,15 +105,20 @@ def make_tables():
             armies INTEGER NOT NULL
         )"""
     )
+    c.execute("DROP TABLE IF EXISTS games")
     c.execute("""
         CREATE TABLE IF NOT EXISTS games (
-            id INTEGER PRIMARY KEY NOT NULL,
             armies INTEGER NOT NULL,
-            territories TEXT NOT NULL,
+            p1 TEXT NOT NULL,
+            p2 TEXT NOT NULL,
+            p3 TEXT NOT NULL,
+            p4 TEXT NOT NULL,
+            p5 TEXT NOT NULL,
+            p6 TEXT NOT NULL,
             turn INTEGER NOT NULL
         )"""
-    ) # id maybe needed? armies in the format by players [23, 42, 23, 0, 0, 0] means 3 players are left, turn here if we need it
-      # territories will be in the form of [list of player 1 territories], [list of player 2 territories], etc.
+    ) # id maybe needed? armies in the format by players 23, 42, 23, 0, 0, 0 means 3 players are left, turn here if we need it
+      # p1, p2, ... are just the territories each player owns
     c.execute("""
     	CREATE TABLE IF NOT EXISTS users(
     		username TEXT PRIMARY KEY NOT NULL,
@@ -123,6 +138,67 @@ def make_tables():
 
 ####################### GAME LOGIC HELPER FUNCTIONS ####################################
 
+def addTerritory(territory, player, army): #adds # of army to a territory and updates it to the player in games db
+	DB_FILE="conquest.db"
+	db = sqlite3.connect(DB_FILE)
+	c = db.cursor()
+	current = c.execute("SELECT armies FROM territories WHERE name = ?", (territory, )).fetchone()[0]
+	c.execute("UPDATE territories SET armies = ? WHERE name = ?", (current + army, territory))
+	if player == 1:
+		current = c.execute(f'SELECT p1 FROM games').fetchone()[0].split(',')
+		if current[0] == '':
+			current[0] = territory
+		else:
+			current.append(territory)
+		ownedplot = ""
+		for plot in current:
+			ownedplot += plot + ", "
+			print(ownedplot)
+		c.execute("UPDATE games SET p1 = ?", (ownedplot[0: len(ownedplot) - 2], ))
+	if player == 2:
+		current = c.execute(f'SELECT p2 FROM games').fetchone()[0].split(',')
+		if current[0] == '':
+			current[0] = territory
+		ownedplot = ""
+		for plot in current:
+			ownedplot += plot + ", "
+		c.execute("UPDATE games SET p2 = ?", (current[0: len(ownedplot) - 2]))
+	if player == 3:
+		current = c.execute(f'SELECT p3 FROM games').fetchone()[0].split(',')
+		if current[0] == '':
+			current[0] = territory
+		ownedplot = ""
+		for plot in current:
+			ownedplot += plot + ", "
+		c.execute("UPDATE games SET p3 = ?", (current[0: len(ownedplot) - 2]))
+	if player == 4:
+		current = c.execute(f'SELECT p4 FROM games').fetchone()[0].split(',')
+		if current[0] == '':
+			current[0] = territory
+		ownedplot = ""
+		for plot in current:
+			ownedplot += plot + ", "
+		c.execute("UPDATE games SET p4 = ?", (current[0: len(ownedplot) - 2]))
+	if player == 5:
+		current = c.execute(f'SELECT p5 FROM games').fetchone()[0].split(',')
+		if current[0] == '':
+			current[0] = territory
+		ownedplot = ""
+		for plot in current:
+			ownedplot += plot + ", "
+		c.execute("UPDATE games SET p5 = ?", (current[0: len(ownedplot) - 2]))
+	if player == 6:
+		current = c.execute(f'SELECT p6 FROM games').fetchone()[0].split(',')
+		if current[0] == '':
+			current[0] = territory
+		ownedplot = ""
+		for plot in current:
+			ownedplot += plot + ", "
+		c.execute("UPDATE games SET p6 = ?", (current[0: len(ownedplot) - 2]))
+	db.commit()
+	db.close()
+
+
 def availableSet(): #returns list of territories still unoccupied
 	DB_FILE="conquest.db"
 	db = sqlite3.connect(DB_FILE)
@@ -139,11 +215,12 @@ def availableMove(territory, player): #returns list of territories available for
 	DB_FILE="conquest.db"
 	db = sqlite3.connect(DB_FILE)
 	c = db.cursor()
-	result = []
-	test = c.execute(f'SELECT connected FROM territories').fetchone()[0][0]
-	return test
 
-#print(availableMove("Alaska", 0))
+	result = c.execute(f'SELECT connected FROM territories').fetchone()[0].split(',')
+	db.commit()
+	db.close()
+	return result
+
 
 def attackTerritory(territory, player, from):
 	DB_FILE="conquest.db"
@@ -159,4 +236,31 @@ def attackTerritory(territory, player, from):
 			c.execute(f'UPDATE territories SET armies = {armiesOrig} WHERE name = {territory}')
 		else: #attack fail
 			c.execute(f'UPDATE territories SET armies = {c.execute(f'SELECT armies FROM territories WHERE name = {from}')-1} WHERE name = {from}')
-	return test
+
+
+def check(territory, player): #checks if given player owns that territory
+	DB_FILE="conquest.db"
+	db = sqlite3.connect(DB_FILE)
+	c = db.cursor()
+	if player == 1:
+		check = c.execute(f'SELECT p1 FROM games').fetchone()[0].split(',')
+	if player == 2:
+		check = c.execute(f'SELECT p2 FROM games').fetchone()[0].split(',')
+	if player == 3:
+		check = c.execute(f'SELECT p3 FROM games').fetchone()[0].split(',')
+	if player == 4:
+		check = c.execute(f'SELECT p4 FROM games').fetchone()[0].split(',')
+	if player == 5:
+		check = c.execute(f'SELECT p5 FROM games').fetchone()[0].split(',')
+	if player == 6:
+		check = c.execute(f'SELECT p6 FROM games').fetchone()[0].split(',')
+	db.commit()
+	db.close()
+	if territory in check:
+		return True
+	else:
+		return False
+
+#print(availableMove("Alaska", 1))
+#print(check("Alaska", 1))
+#print(availableSet())

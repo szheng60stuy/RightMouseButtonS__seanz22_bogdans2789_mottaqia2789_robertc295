@@ -17,6 +17,11 @@ flask
 - created login.html, register.html, menu.html files
 - created login and register functionality
 
+bogdanS2789 -- 2026-1-13
+game.js
+* NEW CAHNGES:
+- working on game logic
+
 seanZ -- 2026-1-14 10:34
 DB
 * NEW CHANGES:
@@ -24,7 +29,7 @@ DB
 - moved users db creation to game.py
 - connected create_tables() to init where it is called
 
-bogdanS2789 -- 2025-1-13
-game.js
-* NEW CAHNGES:
-- working on game logic
+bogdanS2789 -- 2026-1-15 1:05
+game.py
+* NEW CHANGES:
+- further work on attack

@@ -12,5 +12,8 @@ async function Setup()
 function Atck(target, source)
 {
   out.innerText = source + "is attacking" + target;
-  
+  e.preventDefault()
+  $.getJSON('/background_process_test',
+    function(data) {});
+  return false;
 }
