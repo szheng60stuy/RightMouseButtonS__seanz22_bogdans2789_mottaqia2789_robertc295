@@ -249,7 +249,7 @@ def aMoveHelp(territory, player, tried): #helper function for availableMove
 
 def availableMove(territory, player): #returns list of territories available for movement given a chosen territory and player
 	nestedList = aMoveHelp(territory, player, [territory]) #this returns a nested list like ['Northwest Territory', ['Alaska'], ['Ontario', ['Greenland', ['Iceland']], ['Western United States']]]
-	return flatten(nestedList)
+	return flatten(nestedListcontBonus)
 
 def attackTerritory(territory, player, origin):
 	DB_FILE="conquest.db"
@@ -312,27 +312,32 @@ def availableAttack(player): #returns list of territories the player can attack
 	db.close()
 	return result
 
-# def contBonus(player):
-# 	DB_FILE="conquest.db"
-# 	db = sqlite3.connect(DB_FILE)
-# 	c = db.cursor()
-# 	if player == 1:
-# 		owned = c.execute("SELECT p1 FROM games").fetchone()[0].split(', ')
-# 	if player == 2:
-# 		owned = c.execute(f'SELECT p2 FROM games').fetchone()[0].split(', ')
-# 	if player == 3:
-# 		owned = c.execute(f'SELECT p3 FROM games').fetchone()[0].split(', ')
-# 	if player == 4:
-# 		owned = c.execute(f'SELECT p4 FROM games').fetchone()[0].split(', ')
-# 	if player == 5:
-# 		owned = c.execute(f'SELECT p5 FROM games').fetchone()[0].split(', ')
-# 	if player == 6:
-# 		owned = c.execute(f'SELECT p6 FROM games').fetchone()[0].split(', ')
-# 	added = math.floor(len(owned) / 3);
-# 	# North America Bonus
-# 	northA = c.execute(f'SELECT name FROM territories WHERE group = ?', ("North America", ))
-
-
+def addArmy(player): #adds army
+	DB_FILE="conquest.db"
+	db = sqlite3.connect(DB_FILE)
+	c = db.cursor()
+	if player == 1:
+		owned = c.execute("SELECT p1 FROM games").fetchone()[0].split(', ')
+	if player == 2:
+		owned = c.execute(f'SELECT p2 FROM games').fetchone()[0].split(', ')
+	if player == 3:
+		owned = c.execute(f'SELECT p3 FROM games').fetchone()[0].split(', ')
+	if player == 4:
+		owned = c.execute(f'SELECT p4 FROM games').fetchone()[0].split(', ')
+	if player == 5:
+		owned = c.execute(f'SELECT p5 FROM games').fetchone()[0].split(', ')
+	if player == 6:
+		owned = c.execute(f'SELECT p6 FROM games').fetchone()[0].split(', ')
+	added = math.floor(len(owned) / 3);
+	# bonus groups
+	northA = c.execute(f'SELECT name FROM territories WHERE group = ?', ("North America", )).fetchone()[0].split(', ')
+	southA = c.execute(f'SELECT name FROM territories WHERE group = ?', ("South America", )).fetchone()[0].split(', ')
+	eu = c.execute(f'SELECT name FROM territories WHERE group = ?', ("Europe", )).fetchone()[0].split(', ')
+	africa = c.execute(f'SELECT name FROM territories WHERE group = ?', ("Africa", )).fetchone()[0].split(', ')
+	asia = c.execute(f'SELECT name FROM territories WHERE group = ?', ("Asia", )).fetchone()[0].split(', ')
+	aus = c.execute(f'SELECT name FROM territories WHERE group = ?', ("Australia", )).fetchone()[0].split(', ')
+	groups = [northA, southA, eu, africa, asia, aus]
+#print(contBonus(1))
 #print(availableMove("Northwest Territory", 1))
 #print(availableAttack(1))
 #print(check("Greenland", 1))
