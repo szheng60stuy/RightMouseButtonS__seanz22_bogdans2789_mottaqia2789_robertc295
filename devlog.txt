@@ -1,5 +1,25 @@
-* INITIAL DD REVIEW
+INITIAL DD REVIEW
+* SUMMARY
   - lack of roster
-  = lack of JS
+  - lack of JS
   - complete in time?
   - completion date
+
+seanZ -- 2026-1-13 11:39
+DB
+* NEW CHANGES:
+ - created game.py and initiated database creation
+
+mottaqiA2789 -- 2026-1-13 11:44
+flask
+* NEW CHANGES:
+- setup flask
+- created login.html, register.html, menu.html files
+- created login and register functionality
+
+seanZ -- 2026-1-14 10:34
+DB
+* NEW CHANGES:
+- finished db tables (territories and games)
+- moved users db creation to game.py
+- connected create_tables() to init where it is called
