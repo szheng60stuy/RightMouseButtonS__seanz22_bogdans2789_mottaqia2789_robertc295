@@ -246,24 +246,24 @@ def aMoveHelp(territory, player, tried): #helper function for availableMove
 	db.close()
 	return result
 
-def availableMove(territory, player): #returns list of territories available for movement given a chosen territory and player 
+def availableMove(territory, player): #returns list of territories available for movement given a chosen territory and player
 	nestedList = aMoveHelp(territory, player, [territory]) #this returns a nested list like ['Northwest Territory', ['Alaska'], ['Ontario', ['Greenland', ['Iceland']], ['Western United States']]]
 	return flatten(nestedList)
 
-def attackTerritory(territory, player, from):
+def attackTerritory(territory, player, origin):
 	DB_FILE="conquest.db"
 	db = sqlite3.connect(DB_FILE)
 	c = db.cursor()
-	if (from in c.execute(f'SLECT connected FROM territories WHERE name = {territory}')):
+	if (origin in c.execute(f'SLECT connected FROM territories WHERE name = {territory}')):
 		if (random.randint(0,1) == 1): #attack success
-			armiesOrig = c.execute(f'SELECT armies FROM territories WHERE name = {territory}')-1
+			armiesOrig = c.execute(f'SELECT armies FROM territories WHERE name = {origin}')-1
 			if (armiesOrig<1):
-				armiesOrig = c.execute(f'SELECT armies FROM territories WHERE name = {from}')-1
-				c.execute(f'UPDATE territories SET armies = 1 WHERE name = {from}')
+				armiesOrig = c.execute(f'SELECT armies FROM territories WHERE name = {origin}')-1
+				c.execute(f'UPDATE territories SET armies = 1 WHERE name = {origin}')
 				#SEAN ADD CODE TO CHANGE OWNERSHIP OF TARGET TERRITORY
 			c.execute(f'UPDATE territories SET armies = {armiesOrig} WHERE name = {territory}')
 		else: #attack fail
-			c.execute(f'UPDATE territories SET armies = {c.execute(f'SELECT armies FROM territories WHERE name = {from}')-1} WHERE name = {from}')
+			c.execute(f"UPDATE territories SET armies = {c.execute(f'SELECT armies FROM territories WHERE name = {origin}')-1} WHERE name = {origin}")
 
 
 def check(territory, player): #checks if given player owns that territory
