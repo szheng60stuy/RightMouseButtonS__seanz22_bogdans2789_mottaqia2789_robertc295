@@ -33,3 +33,10 @@ bogdanS2789 -- 2026-1-15 1:05
 game.py
 * NEW CHANGES:
 - further work on attack
+
+mottaqiA2789 -- 2026-1-15 1:22
+map & code cleanup & base.html
+* NEW CHANGES:
+- added interactive map, includes animations for hovering and highlights selected territory + surrounding territory
+- cleaned code in html files
+- created base.html but no css yet
