@@ -6,6 +6,7 @@
 
 import sqlite3
 import random
+import math
 
 ####################################### SETUP ###################################
 
@@ -307,7 +308,30 @@ def availableAttack(player): #returns list of territories the player can attack
 					tried.append(connect)
 		if plot not in tried:
 			tried.append(plot)
+	db.commit()
+	db.close()
 	return result
+
+# def contBonus(player):
+# 	DB_FILE="conquest.db"
+# 	db = sqlite3.connect(DB_FILE)
+# 	c = db.cursor()
+# 	if player == 1:
+# 		owned = c.execute("SELECT p1 FROM games").fetchone()[0].split(', ')
+# 	if player == 2:
+# 		owned = c.execute(f'SELECT p2 FROM games').fetchone()[0].split(', ')
+# 	if player == 3:
+# 		owned = c.execute(f'SELECT p3 FROM games').fetchone()[0].split(', ')
+# 	if player == 4:
+# 		owned = c.execute(f'SELECT p4 FROM games').fetchone()[0].split(', ')
+# 	if player == 5:
+# 		owned = c.execute(f'SELECT p5 FROM games').fetchone()[0].split(', ')
+# 	if player == 6:
+# 		owned = c.execute(f'SELECT p6 FROM games').fetchone()[0].split(', ')
+# 	added = math.floor(len(owned) / 3);
+# 	# North America Bonus
+# 	northA = c.execute(f'SELECT name FROM territories WHERE group = ?', ("North America", ))
+
 
 #print(availableMove("Northwest Territory", 1))
 #print(availableAttack(1))
