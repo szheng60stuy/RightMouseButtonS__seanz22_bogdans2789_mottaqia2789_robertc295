@@ -41,12 +41,17 @@ map & code cleanup & base.html
 - cleaned code in html files
 - created base.html but no css yet
 
-
 seanZ -- 2026-1-15 2:44
 GAME LOGIC
 * NEW CHANGES:
-- game.py DONE (99.999% certainty)
+- game.py DONE
 - Added AddTerritories(territory, player)
 - Added trio available functions for setting up, moving, and attacking (they return list of territories for respective tasks)
 - Added check(territory, player) to check if a player owns a given territory
 - fully fixed and optimized db tables for use 
+
+seanZ -- 2026-1-15 20:56
+GAME LOGIC
+* NEW CHANGES:
+- added addArmy for each turn
+- fixed bug in addTerritory
