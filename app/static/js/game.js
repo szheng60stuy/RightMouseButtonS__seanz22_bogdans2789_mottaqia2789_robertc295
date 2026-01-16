@@ -31,8 +31,9 @@ let lasthighlighted = new Set();
 
 let phase = "setup";
 let currentPlayer = 1;
+let playerNum = 0;
 
-const turnEl = document.getElementById("turn"); 
+const turnEl = document.getElementById("turn");
 const phaseEl = document.getElementById("phase");
 const resetBtn = document.getElementById("reset");
 const endTurnBtn = document.getElementById("endTurn");
@@ -47,7 +48,7 @@ if (endTurnBtn) {
     const response = await fetch("/api/endTurn", {method: "POST"});
     const data = await response.json();
     currentPlayer = data.turn();
-    
+
     phase = "reinforcement";
     selectedId = null;
     lasthighlighted.clear();
@@ -130,6 +131,11 @@ async function updateState() {
 }
 
 // -- Rendering / UI Updates --
+
+function getSlider()
+{
+  playerNum = document.getElementById('rangeValue').value;
+}
 
 function applyState(state) {
   for (const [territory, info] of Object.entries(state.territories)) {
