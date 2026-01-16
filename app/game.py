@@ -285,56 +285,74 @@ def availableMove(territory, player): #returns list of territories available for
 	return flatten(nestedList[1:])
 
 def attackTerritory(territory, attacker, origin):
-	DB_FILE="conquest.db"
-	db = sqlite3.connect(DB_FILE)
-	c = db.cursor()
-	defender = 0
-	outcome = False
-	for i in range(5):
-		if check(territory, i + 1):
-			defender = i + 1
-	if territory in availableAttack(origin, attacker):
-		defendArmy = c.execute("SELECT armies FROM territories WHERE name = ?", (territory, )).fetchone()[0]
-		attackArmy = c.execute("SELECT armies FROM territories WHERE name = ?", (origin, )).fetchone()[0]
-		if (random.randint(0,10) > 4): #attack success
-			outcome = True
-			defendArmy -= 1
-			c.execute("UPDATE territories SET armies = ? WHERE name = ?", (defendArmy, territory))
-			if defendArmy == 0:
-				current = c.execute(f'SELECT p{attacker} FROM games').fetchone()[0].split(', ') #add new territory to attacker
-				current.append(territory)
-				ownedplot = ""
-				for plot in current:
-					ownedplot += plot + ", "
-				c.execute(f"UPDATE games SET p{attacker} = ?", (ownedplot[0: len(ownedplot) - 2], ))
+    DB_FILE="conquest.db"
+    db = sqlite3.connect(DB_FILE)
+    c = db.cursor()
 
-				current = c.execute(f'SELECT p{defender} FROM games').fetchone()[0].split(', ') #removes territory from defender
-				current.remove(territory)
-				ownedplot = ""
-				for plot in current:
-					ownedplot += plot + ", "
-				c.execute(f"UPDATE games SET p{defender} = ?", (ownedplot[0: len(ownedplot) - 2], ))
-				 #move 1 soldier there
-				c.execute("UPDATE territories SET armies = ? WHERE name = ?", (1, territory))
-				current = c.execute("SELECT armies FROM territories WHERE name = ?", (origin, )).fetchone()[0]
-				c.execute("UPDATE territories SET armies = ? WHERE name = ?", (current - 1, origin))
+    def get_player_list(p):
+        s = c.execute(f"SELECT p{p} FROM games").fetchone()[0]
+        return [x.strip() for x in s.split(",") if x.strip()]
 
-			print("success")
-		else: #attack fail
-			attackArmy -= 1
-			c.execute("UPDATE territories SET armies = ? WHERE name = ?", (attackArmy, origin))
-			print("fail")
-		armies = c.execute(f'SELECT armies FROM games').fetchone()[0].split(', ')
-		armies[defender - 1] = str(defendArmy)
-		armies[attacker - 1] = str(attackArmy)
-		update = ""
-		for army in armies:
-			update += army
-			update += ", "
-		c.execute("UPDATE games SET armies = ?", (update, ))
-	db.commit()
-	db.close()
-	return outcome
+    def set_player_list(p, lst):
+        c.execute(f"UPDATE games SET p{p} = ?", (", ".join(lst),))
+
+    defender = 0
+    outcome = False
+    captured = False
+
+    for i in range(6):
+        if check(territory, i + 1):
+            defender = i + 1
+
+    # if not attackable, just return
+    if territory not in availableAttack(origin, attacker) or defender == 0:
+        db.commit()
+        db.close()
+        return {"outcome": False, "captured": False}
+
+    defendArmy = c.execute("SELECT armies FROM territories WHERE name = ?", (territory,)).fetchone()[0]
+    attackArmy = c.execute("SELECT armies FROM territories WHERE name = ?", (origin,)).fetchone()[0]
+
+    if attackArmy < 2:
+        db.commit()
+        db.close()
+        return {"outcome": False, "captured": False}
+
+    if random.randint(0,10) > 4:  # success
+        outcome = True
+        defendArmy -= 1
+
+        if defendArmy == 0:
+            captured = True
+
+            # transfer ownership
+            att_list = get_player_list(attacker)
+            if territory not in att_list:
+                att_list.append(territory)
+            set_player_list(attacker, att_list)
+
+            def_list = get_player_list(defender)
+            if territory in def_list:
+                def_list.remove(territory)
+            set_player_list(defender, def_list)
+
+            # move 1 troop in
+            c.execute("UPDATE territories SET armies = ? WHERE name = ?", (1, territory))
+            attackArmy -= 1
+            c.execute("UPDATE territories SET armies = ? WHERE name = ?", (attackArmy, origin))
+        else:
+            # defender survives
+            c.execute("UPDATE territories SET armies = ? WHERE name = ?", (defendArmy, territory))
+
+    else:  # fail
+        attackArmy -= 1
+        c.execute("UPDATE territories SET armies = ? WHERE name = ?", (attackArmy, origin))
+
+    db.commit()
+    db.close()
+    return {"outcome": outcome, "captured": captured}
+
+
 
 def check(territory, player): #checks if given player owns that territory
 	DB_FILE="conquest.db"
@@ -389,42 +407,52 @@ def availableAttack(territory, player): #returns list of territories the player 
 	db.close()
 	return result
 
-def addArmy(player): #adds army, used at start of each turn
-	DB_FILE="conquest.db"
-	db = sqlite3.connect(DB_FILE)
-	c = db.cursor()
-	added = math.floor(len(owned) / 3);
-	# bonus groups
-	northA = c.execute('SELECT name FROM territories WHERE group = ?', ("North America", )).fetchone()[0].split(', ')
-	southA = c.execute('SELECT name FROM territories WHERE group = ?', ("South America", )).fetchone()[0].split(', ')
-	eu = c.execute('SELECT name FROM territories WHERE group = ?', ("Europe", )).fetchone()[0].split(', ')
-	africa = c.execute('SELECT name FROM territories WHERE group = ?', ("Africa", )).fetchone()[0].split(', ')
-	asia = c.execute('SELECT name FROM territories WHERE group = ?', ("Asia", )).fetchone()[0].split(', ')
-	aus = c.execute('SELECT name FROM territories WHERE group = ?', ("Australia", )).fetchone()[0].split(', ')
-	groups = [northA, southA, eu, africa, asia, aus]
-	cont = 0
-	for group in groups: #check if player owns each continent group
-		cont += 1
-		add = True
-		for terr in group:
-			if not check(terr, player):
-				add = False
-		if add and (group == 1 or group == 3): #the continent bonuses vary
-			added += 5
-		if add and (group == 2 or group == 6):
-			added += 2
-		if add and group == 4:
-			added += 4
-		if add and group == 5:
-			added += 7
-	armies = c.execute('SELECT armies FROM games').fetchone()[0].split(', ')
-	armies[player - 1] = str(added + int(armies[player - 1]))
-	update = ""
-	for army in armies:
-		update += army
-		update += ", "
-	c.execute("UPDATE games SET armies = ?", (update, ))
-	print(added + " army added to player " + player)
+def addArmy(player):  # adds reinforcements to that player's pool
+    DB_FILE = "conquest.db"
+    db = sqlite3.connect(DB_FILE)
+    c = db.cursor()
+
+    # territories owned by player (stored as ", " separated)
+    owned_str = c.execute(f"SELECT p{player} FROM games").fetchone()[0]
+    owned = [x.strip() for x in owned_str.split(",") if x.strip()]
+
+    # base reinforcements: floor(n/3), minimum 3 if player owns anything
+    base = (len(owned) // 3)
+    if len(owned) > 0 and base < 3:
+        base = 3
+
+    # continent bonuses
+    bonuses = {
+        "North America": 5,
+        "South America": 2,
+        "Europe": 5,
+        "Africa": 3,
+        "Asia": 7,
+        "Australia": 2,
+    }
+
+    bonus = 0
+    for cont, val in bonuses.items():
+        rows = c.execute("SELECT name FROM territories WHERE Cgroup = ?", (cont,)).fetchall()
+        terrs = [r[0] for r in rows]
+        if terrs and all(t in owned for t in terrs):
+            bonus += val
+
+    added = base + bonus
+
+    # update games.armies pool string
+    armies_str = c.execute("SELECT armies FROM games").fetchone()[0]
+    pools = [int(x.strip()) for x in armies_str.split(",") if x.strip() != ""]
+    while len(pools) < 6:
+        pools.append(0)
+
+    pools[player - 1] += added
+
+    c.execute("UPDATE games SET armies = ?", (", ".join(str(x) for x in pools),))
+    db.commit()
+    db.close()
+
+    return added
 
 def getMapInfo() -> dict:
 	out = {}

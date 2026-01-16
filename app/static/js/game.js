@@ -58,6 +58,9 @@ const troopsEl = document.getElementById("troopsLeft");
 let selectedId = null;
 let lasthighlighted = new Set();
 
+let attackOrigin = null;
+let attackTargets = new Set();
+
 let phase = "setup";
 let currentPlayer = 1;
 let playerCount = 2;
@@ -65,12 +68,56 @@ let playerCount = 2;
 let moveOrigin = null;
 let moveTarget = new Set();
 
-function isMyTurn() {
-  return true;
-}
+let gameOver = false;
 
-function canClickTerritory(territory) {
-  return isMyTurn();
+function showWinScreen(winner) {
+  gameOver = true;
+
+  let overlay = document.getElementById("winOverlay");
+  if (overlay) overlay.remove();
+
+  overlay = document.createElement("div");
+  overlay.id = "winOverlay";
+  overlay.style.position = "fixed";
+  overlay.style.inset = "0";
+  overlay.style.background = "rgba(0,0,0,0.7)";
+  overlay.style.display = "flex";
+  overlay.style.alignItems = "center";
+  overlay.style.justifyContent = "center";
+  overlay.style.zIndex = "9999";
+
+  const card = document.createElement("div");
+  card.style.background = "white";
+  card.style.padding = "24px";
+  card.style.borderRadius = "12px";
+  card.style.maxWidth = "520px";
+  card.style.width = "90%";
+  card.style.textAlign = "center";
+
+  const h = document.createElement("h1");
+  h.textContent = `Player ${winner} wins!`;
+  h.style.margin = "0 0 12px 0";
+
+  const p = document.createElement("p");
+  p.textContent = "Game over.";
+  p.style.margin = "0 0 20px 0";
+
+  const btn = document.createElement("button");
+  btn.textContent = "Play again";
+  btn.style.padding = "10px 14px";
+  btn.style.cursor = "pointer";
+  btn.addEventListener("click", async () => {
+    await resetGame();
+    gameOver = false;
+    const ov = document.getElementById("winOverlay");
+    if (ov) ov.remove();
+  });
+
+  card.appendChild(h);
+  card.appendChild(p);
+  card.appendChild(btn);
+  overlay.appendChild(card);
+  document.body.appendChild(overlay);
 }
 
 function setPhase(next) {
@@ -81,9 +128,16 @@ function setPhase(next) {
     (phase === "reinforce" && next === "deploy");
   
   if (!ok) return;
-
+  
   phase = next;
   selectedId = null;
+  
+  attackOrigin = null;
+  attackTargets.clear();
+  
+  moveOrigin = null;
+  moveTarget.clear();
+  
   lasthighlighted.clear();
   updateHud();
   repaint();
@@ -92,7 +146,7 @@ function setPhase(next) {
 const turnEl = document.getElementById("turn");
 const phaseEl = document.getElementById("phase");
 const resetBtn = document.getElementById("reset");
-const endTurnBtn = document.getElementById("endTurn");
+const endTurnBtn = document.getElementById("endPhase");
 const toAttackBtn = document.getElementById("toAttack");
 const toReinforceBtn = document.getElementById("toReinforce");
 
@@ -104,34 +158,33 @@ function updateHud() {
   if (troopsEl) troopsEl.textContent = `Troops left: ${pool ?? "?"}`;
 }
 
-
-if (toAttackBtn) {
-  toAttackBtn.addEventListener("click", () => {
-    if (!isMyTurn()) return;
-    setPhase("attack");
-  });
-}
-
-if (toReinforceBtn) {
-  toReinforceBtn.addEventListener("click", () => {
-    if (!isMyTurn()) return;
-    setPhase("reinforce");
-  });
-}
-
 if (endTurnBtn) {
   endTurnBtn.addEventListener("click", async () => {
-    const response = await fetch("/api/endTurn", {method: "POST"});
+    if (phase === "attack") {
+      setPhase("reinforce");
+      return;
+    }
+
+    if (phase !== "reinforce") return;
+
+    const response = await fetch("/api/endTurn", { method: "POST" });
     const data = await response.json();
     currentPlayer = data.turn;
 
     phase = "deploy";
+    attackOrigin = null;
+    attackTargets.clear();
+    moveOrigin = null;
+    moveTarget.clear();
     selectedId = null;
     lasthighlighted.clear();
+
+    await updateState();
     updateHud();
     repaint();
   });
 }
+
 
 async function resetGame() {
   await fetch("/api/reset", {
@@ -285,6 +338,11 @@ async function placeArmy(territory, player, army = 1) {
 
 async function updateState() {
   latestState = await fetchState();
+  if (latestState?.winner && latestState.winner !== 0) {
+    showWinScreen(latestState.winner);
+    return;
+  }
+
   if (latestState && latestState.turn && latestState.turn !== 0) {
     currentPlayer = latestState.turn;
     updateHud();
@@ -304,6 +362,12 @@ function applyState(state) {
   }
 }
 
+function setHighlightedByNames(names) {
+  lasthighlighted.clear();
+  (names || []).forEach(name => lasthighlighted.add(nameToId(name)));
+  repaint(true);
+}
+
 function repaint() {
   if (latestState) applyState(latestState);
 
@@ -318,13 +382,6 @@ function repaint() {
   }
 
   if (latestState) updateTroopLabels(latestState);
-}
-
-function IncPlayers()
-{
-  currentPlayer++;
-  let players = 0; //PUT THE PLAYER NUMBER FUNCTION HERE
-  if (currentPlayer>players) currentPlayer = 1;
 }
 
 // -- Map / Neighbor Utilities --
@@ -385,8 +442,6 @@ layer.querySelectorAll("path").forEach(p => {
 
   // highlight selected territory and adjacent territories
   p.addEventListener("click",async () => {
-    if (!canClickTerritory()) return;
-
     // always refresh info from state
     const territoryName = idToName(p.id);
     const info = latestState.territories?.[territoryName];
@@ -399,7 +454,7 @@ layer.querySelectorAll("path").forEach(p => {
       if (!ok) return;
         
       // advance the turn on the server
-      await fetch("/api/endTurn", { method: "POST" });
+      await fetch("/api/nextTurn", { method: "POST" });
         
       // resync client with server turn
       await updateState();
@@ -443,9 +498,69 @@ layer.querySelectorAll("path").forEach(p => {
     }
 
     else if (phase === "attack") {
-      // for now: selection only (no placement)
-      selectedId = p.id;
-      repaint();
+      if (!attackOrigin) {
+        if (!info || info.owner !== currentPlayer) return;
+        if ((info.armies || 0) < 2) return;
+      
+        attackOrigin = territoryName;
+        selectedId = nameToId(attackOrigin);
+      
+        const data = await fetch("/api/availableAttack", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ territory: attackOrigin, player: currentPlayer })
+        }).then(r => r.json());
+      
+        attackTargets = new Set(data.out || []);
+        setHighlightedByNames([...attackTargets]);
+        return;
+      }
+    
+      if (!attackTargets.has(territoryName)) {
+        attackOrigin = null;
+        attackTargets.clear();
+        lasthighlighted.clear();
+        selectedId = null;
+        repaint(true);
+        return;
+      }
+    
+      const result = await fetch("/api/attackTerritory", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          territory: territoryName,
+          player: currentPlayer,
+          origin: attackOrigin
+        })
+      }).then(r => r.json());
+    
+      await updateState();
+    
+      const originInfo = latestState?.territories?.[attackOrigin];
+      if (!originInfo || (originInfo.armies || 0) < 2) {
+        attackOrigin = null;
+        attackTargets.clear();
+        lasthighlighted.clear();
+        selectedId = null;
+        repaint(true);
+        return;
+      }
+    
+      const data2 = await fetch("/api/availableAttack", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ territory: attackOrigin, player: currentPlayer })
+      }).then(r => r.json());
+    
+      attackTargets = new Set(data2.out || []);
+      setHighlightedByNames([...attackTargets]);
+    
+      if (selectedEl) {
+        selectedEl.textContent =
+          `Attack from ${attackOrigin} -> ${territoryName}: ${result.out ? "hit" : "miss"} | Phase: ${phase}`;
+      }
+      return;
     }
 
     else if (phase === "reinforce") {

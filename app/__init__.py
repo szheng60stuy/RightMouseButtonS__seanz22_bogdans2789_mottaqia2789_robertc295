@@ -13,9 +13,9 @@ def initialize_db():
   db.close()
   if count == 0:
     game.set_game()
-  game.addTerritory(None, "Alaska", 1, 1)
-  game.addTerritory(None, "Northwest Territory", 2, 5)
-  game.attackTerritory("Alaska", 2, "Northwest Territory")
+  #game.addTerritory(None, "Alaska", 1, 1)
+  #game.addTerritory(None, "Northwest Territory", 2, 5)
+  #game.attackTerritory("Alaska", 2, "Northwest Territory")
 
 def getTurn():
     db = sqlite3.connect(DB_FILE)
@@ -116,7 +116,7 @@ def game_test():
 @app.route("/api/start", methods=['POST'])
 def start():
     players = session.get('players', 2)
-
+    session['turnsCompleted'] = 0
     startingArmies = {2:40, 3:35, 4:30, 5:25, 6:20}
     starting = startingArmies[players]
 
@@ -196,8 +196,8 @@ def move():
 @app.route('/api/attackTerritory', methods=['POST'])
 def attackTerritory():
     data = request.get_json()
-    out = game.attackTerritory(data['territory'], data['player'], data['origin'])
-    return jsonify(out=out)
+    result = game.attackTerritory(data['territory'], data['player'], data['origin'])
+    return jsonify(out=result["outcome"], captured=result["captured"])
 
 @app.route('/api/availableAttack', methods=['POST'])
 def availableAttack():
@@ -229,10 +229,44 @@ def state():
           "armies": armies,
           "owner": owners.get(name, 0)
       }
-  return jsonify(territories=out, turn=game_row[7], pools=pools, armies=pools)
+
+  # --- winner detection ---
+  total_territories = len(out)
+  counts = {i: 0 for i in range(1, 7)}
+  for info in out.values():
+      owner = info.get("owner", 0)
+      if owner in counts:
+          counts[owner] += 1
+
+  winner = 0
+  for p, cnt in counts.items():
+      if total_territories > 0 and cnt == total_territories:
+          winner = p
+          break
+
+  return jsonify(territories=out, turn=game_row[7], pools=pools, armies=pools, winner=winner)
 
 @app.route('/api/endTurn', methods=['POST'])
 def endTurn():
+    players = session.get('players', 2)
+
+    db = sqlite3.connect(DB_FILE)
+    c = db.cursor()
+    turn = c.execute("SELECT turn FROM games").fetchone()[0]
+    nextTurn = (turn % players) + 1
+    c.execute("UPDATE games SET turn = ?", (nextTurn,))
+    db.commit()
+    db.close()
+
+    session['turns_completed'] = session.get('turns_completed', 0) + 1
+
+    if session['turns_completed'] >= players:
+        game.addArmy(nextTurn)
+
+    return jsonify(turn=nextTurn)
+
+@app.route('/api/nextTurn', methods=['POST'])
+def nextTurn():
    players = session.get('players', 2)
    db = sqlite3.connect(DB_FILE)
    c = db.cursor()
@@ -241,6 +275,7 @@ def endTurn():
    c.execute("UPDATE games SET turn = ?", (nextTurn,))
    db.commit()
    db.close()
+
    return jsonify(turn=nextTurn)
 
 @app.route('/api/reset', methods=['POST'])
