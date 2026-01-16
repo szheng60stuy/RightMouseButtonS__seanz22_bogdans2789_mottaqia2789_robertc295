@@ -13,15 +13,9 @@ def initialize_db():
   db.close()
   if count == 0:
     game.set_game()
-  # set_game() #test purposes
-  # addTerritory("Alaska", 1, 1)
-  # addTerritory("Northwest Territory", 1, 1)
-  # addTerritory("Greenland", 1, 1)
-  # addTerritory("Iceland", 1, 1)
-  # addTerritory("Ontario", 1, 1)
-  # addTerritory("Western United States", 1, 1)
-  # addTerritory("Ukraine", 1, 1)
-  # # test purposes
+  game.addTerritory(None, "Alaska", 1, 2)
+  game.addTerritory(None, "Northwest Territory", 2, 5)
+  game.attackTerritory("Alaska", 2, "Northwest Territory")
 
 def getTurn():
     db = sqlite3.connect(DB_FILE)
@@ -126,6 +120,10 @@ def start():
 def returnMap():
     return jsonify(game.getMapInfo())
 
+@app.route("/api/getPlayers", methods=['GET'])
+def returnPlayer():
+    return jsonify(game.getPlayers())
+
 @app.route('/api/addTerritory', methods=['POST'])
 def addTerritory():
     data = request.get_json()
@@ -165,8 +163,8 @@ def move():
 @app.route('/api/attackTerritory', methods=['POST'])
 def attackTerritory():
     data = request.get_json()
-    game.attackTerritory(data['territory'], data['player'], data['origin'])
-    return jsonify(success=True)
+    out = game.attackTerritory(data['territory'], data['player'], data['origin'])
+    return jsonify(out=out)
 
 @app.route('/api/availableAttack', methods=['POST'])
 def availableAttack():

@@ -58,7 +58,7 @@ function setPhase(next) {
   repaint();
 }
 
-const turnEl = document.getElementById("turn"); 
+const turnEl = document.getElementById("turn");
 const phaseEl = document.getElementById("phase");
 const resetBtn = document.getElementById("reset");
 const endTurnBtn = document.getElementById("endTurn");
@@ -178,6 +178,11 @@ async function updateState() {
 }
 
 // -- Rendering / UI Updates --
+
+function getSlider()
+{
+  playerNum = document.getElementById('rangeValue').value;
+}
 
 function applyState(state) {
   for (const [territory, info] of Object.entries(state.territories)) {
