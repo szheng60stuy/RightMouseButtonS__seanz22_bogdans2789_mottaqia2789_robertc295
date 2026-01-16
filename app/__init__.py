@@ -13,9 +13,9 @@ def initialize_db():
   db.close()
   if count == 0:
     game.set_game()
-  #game.addTerritory(None, "Alaska", 1, 2)
-  #game.addTerritory(None, "Northwest Territory", 2, 5)
-  #game.attackTerritory("Alaska", 2, "Northwest Territory")
+  game.addTerritory(None, "Alaska", 1, 1)
+  game.addTerritory(None, "Northwest Territory", 2, 5)
+  game.attackTerritory("Alaska", 2, "Northwest Territory")
 
 def getTurn():
     db = sqlite3.connect(DB_FILE)

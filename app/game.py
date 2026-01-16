@@ -300,6 +300,25 @@ def attackTerritory(territory, attacker, origin):
 			outcome = True
 			defendArmy -= 1
 			c.execute("UPDATE territories SET armies = ? WHERE name = ?", (defendArmy, territory))
+			if defendArmy == 0:
+				current = c.execute(f'SELECT p{attacker} FROM games').fetchone()[0].split(', ') #add new territory to attacker
+				current.append(territory)
+				ownedplot = ""
+				for plot in current:
+					ownedplot += plot + ", "
+				c.execute(f"UPDATE games SET p{attacker} = ?", (ownedplot[0: len(ownedplot) - 2], ))
+
+				current = c.execute(f'SELECT p{defender} FROM games').fetchone()[0].split(', ') #removes territory from defender
+				current.remove(territory)
+				ownedplot = ""
+				for plot in current:
+					ownedplot += plot + ", "
+				c.execute(f"UPDATE games SET p{defender} = ?", (ownedplot[0: len(ownedplot) - 2], ))
+				 #move 1 soldier there
+				c.execute("UPDATE territories SET armies = ? WHERE name = ?", (1, territory))
+				current = c.execute("SELECT armies FROM territories WHERE name = ?", (origin, )).fetchone()[0]
+				c.execute("UPDATE territories SET armies = ? WHERE name = ?", (current - 1, origin))
+
 			print("success")
 		else: #attack fail
 			attackArmy -= 1
