@@ -155,6 +155,13 @@ function repaint() {
   }
 }
 
+function IncPlayers()
+{
+  currentPlayer++;
+  let players = 0; //PUT THE PLAYER NUMBER FUNCTION HERE
+  if (currentPlayer>players) currentPlayer = 1;
+}
+
 // -- Map / Neighbor Utilities --
 function neighborsOf(territory) {
   return (map && map[territory] && map[territory].neighbors) ? map[territory].neighbors : [];
@@ -208,6 +215,7 @@ layer.querySelectorAll("path").forEach(p => {
     const info = latestState.territories?.[territoryName];
 
     if (phase === "setup") {
+      IncPlayers();
       if (await isUnoccupied(territoryName)) {
         await placeArmy(territoryName, currentPlayer, 1);
 
@@ -230,7 +238,7 @@ layer.querySelectorAll("path").forEach(p => {
         await placeArmy(territoryName, currentPlayer, 1);
       }
     }
-    
+
     if (info) {
       selectedEl.textContent = `Selected: ${territoryName} | Owner: Player ${info.owner} | Troops: ${info.armies} | Phase: ${phase}`;
     } else {

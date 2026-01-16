@@ -384,5 +384,3 @@ def getMapInfo() -> dict:
 def getNeighbors(territory):
 	info = map_info.get(territory, [])
 	return info[1:]  # return neighbors excluding the continent name
-
-
