@@ -115,8 +115,6 @@ function neighborsOf(territory) {
 }
 
 // -- Highlight Helpers --
-   Highlight Helpers
-   ========================= */
 function clearHighlights() {
   lasthighlighted.clear();
   repaint();
