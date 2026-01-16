@@ -125,8 +125,7 @@ def make_tables():
     c.execute("""
     	CREATE TABLE IF NOT EXISTS users(
     		username TEXT PRIMARY KEY NOT NULL,
-    		password TEXT NOT NULL,
-    		games INTEGER
+    		password TEXT NOT NULL
     	)"""
     )
 
@@ -160,6 +159,13 @@ def addTerritory(home, territory, player, army): #adds # of army to a territory 
 	if home == None:
 		current = c.execute("SELECT armies FROM territories WHERE name = ?", (territory, )).fetchone()[0]
 		c.execute("UPDATE territories SET armies = ? WHERE name = ?", (current + army, territory))
+		armies = c.execute('SELECT armies FROM games').fetchone()[0].split(', ')
+		armies[player - 1] = str(int(armies[player - 1]) - army)
+		update = ""
+		for army in armies:
+			update += army
+			update += ", "
+		c.execute("UPDATE games SET armies = ?", (update, ))
 	if adding:
 		if player == 1:
 			current = c.execute('SELECT p1 FROM games').fetchone()[0].split(', ')
