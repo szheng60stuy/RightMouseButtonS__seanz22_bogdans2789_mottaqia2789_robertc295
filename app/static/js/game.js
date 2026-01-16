@@ -32,6 +32,9 @@ let lasthighlighted = new Set();
 let phase = "setup";
 let currentPlayer = 1;
 
+let moveOrigin = null;
+let moveTarget = new Set();
+
 function isMyTurn() {
   if (!latestState) return true;
   if (latestState.turn === 0) return true;
@@ -308,8 +311,6 @@ layer.querySelectorAll("path").forEach(p => {
     }
 
     else if (phase === "reinforce") {
-      // use your moveOrigin/moveTarget globals (make sure names match)
-      // 1) pick origin
       if (!moveOrigin) {
         if (!info || info.owner !== currentPlayer) return;
         if ((info.armies || 0) < 2) return;
@@ -328,7 +329,6 @@ layer.querySelectorAll("path").forEach(p => {
         return;
       }
     
-      // 2) pick destination
       if (!moveTarget.has(territoryName)) {
         moveOrigin = null;
         moveTarget.clear();
