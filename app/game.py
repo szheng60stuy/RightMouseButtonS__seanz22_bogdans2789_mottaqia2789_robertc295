@@ -10,18 +10,7 @@ import math
 
 ####################################### SETUP ###################################
 
-def set_game():
-	DB_FILE="conquest.db"
-	db = sqlite3.connect(DB_FILE)
-	c = db.cursor()
-	command = 'INSERT INTO games VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
-	vars = (0, '', '', '', '', '', '', 0)
-	c.execute(command, vars)
-	db.commit()
-	db.close()
-
-def set_territories():
-	map_info = {
+map_info = {
     # --- North America ---
     "Alaska": ["North America", "Northwest Territory", "Alberta", "Kamchatka"],
     "Northwest Territory": ["North America", "Alaska", "Alberta", "Ontario", "Greenland"],
@@ -75,8 +64,20 @@ def set_territories():
     "New Guinea": ["Australia", "Indonesia", "Western Australia", "Eastern Australia"],
     "Western Australia": ["Australia", "Indonesia", "New Guinea", "Eastern Australia"],
     "Eastern Australia": ["Australia", "Western Australia", "New Guinea"]
-	}
+}
 
+
+def set_game():
+	DB_FILE="conquest.db"
+	db = sqlite3.connect(DB_FILE)
+	c = db.cursor()
+	command = 'INSERT INTO games VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+	vars = (0, '', '', '', '', '', '', 0)
+	c.execute(command, vars)
+	db.commit()
+	db.close()
+
+def set_territories():
 	DB_FILE="conquest.db"
 	db = sqlite3.connect(DB_FILE)
 	c = db.cursor()
@@ -312,6 +313,17 @@ def availableAttack(player): #returns list of territories the player can attack
 	db.close()
 	return result
 
+def getMapInfo() -> dict:
+	out = {}
+	for territory, info in map_info.items():
+		if not info:
+			continue
+		out[territory] = {"continent": info[0], "neighbors": info[1:]}
+	return out
+
+def getNeighbors(territory):
+	info = map_info.get(territory, [])
+	return info[1:]  # return neighbors excluding the continent name
 # def contBonus(player):
 # 	DB_FILE="conquest.db"
 # 	db = sqlite3.connect(DB_FILE)
