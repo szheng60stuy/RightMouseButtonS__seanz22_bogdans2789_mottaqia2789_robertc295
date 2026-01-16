@@ -32,23 +32,65 @@ let lasthighlighted = new Set();
 let phase = "setup";
 let currentPlayer = 1;
 
+function isMyTurn() {
+  if (!latestState) return true;
+  if (latestState.turn === 0) return true;
+  return latestState.turn === currentPlayer;
+}
+
+function canClickTerritory(territory) {
+  return isMyTurn();
+}
+
+function setPhase(next) {
+  const ok =
+    (phase === "setup" && next === "deploy") ||
+    (phase === "deploy" && next === "attack") ||
+    (phase === "attack" && next === "reinforce") ||
+    (phase === "reinforce" && next === "deploy");
+  
+  if (!ok) return;
+
+  phase = next;
+  selectedId = null;
+  lasthighlighted.clear();
+  updateHud();
+  repaint();
+}
+
 const turnEl = document.getElementById("turn"); 
 const phaseEl = document.getElementById("phase");
 const resetBtn = document.getElementById("reset");
 const endTurnBtn = document.getElementById("endTurn");
+const toAttackBtn = document.getElementById("toAttack");
+const toReinforceBtn = document.getElementById("toReinforce");
 
 function updateHud() {
   if (phaseEl) phaseEl.textContent = `Phase: ${phase}`;
   if (turnEl) turnEl.textContent = `Current Player: Player ${currentPlayer}`;
 }
 
+if (toAttackBtn) {
+  toAttackBtn.addEventListener("click", () => {
+    if (!isMyTurn()) return;
+    setPhase("attack");
+  });
+}
+
+if (toReinforceBtn) {
+  toReinforceBtn.addEventListener("click", () => {
+    if (!isMyTurn()) return;
+    setPhase("reinforce");
+  });
+}
+
 if (endTurnBtn) {
   endTurnBtn.addEventListener("click", async () => {
     const response = await fetch("/api/endTurn", {method: "POST"});
     const data = await response.json();
-    currentPlayer = data.turn();
-    
-    phase = "reinforcement";
+    currentPlayer = data.turn;
+
+    phase = "deploy";
     selectedId = null;
     lasthighlighted.clear();
     updateHud();
@@ -77,6 +119,8 @@ async function resetGame() {
 if (resetBtn) {
   resetBtn.addEventListener("click", resetGame);
 }
+
+
 
 // -- ID/Name Conversion Helpers --
 
@@ -126,6 +170,10 @@ async function placeArmy(territory, player, army=1) {
 
 async function updateState() {
   latestState = await fetchState();
+  if (latestState && latestState.turn && latestState.turn !== 0) {
+    currentPlayer = latestState.turn;
+    updateHud();
+  }
   repaint();
 }
 
@@ -189,7 +237,7 @@ function highlightAdjacent(neighbors) {
 async function init() {
   await loadMap();
   updateHud();
-  updateState();
+  await updateState();
 }
 
 // animations and event listeners for each territory
@@ -211,33 +259,91 @@ layer.querySelectorAll("path").forEach(p => {
 
   // highlight selected territory and adjacent territories
   p.addEventListener("click",async () => {
+    if (!canClickTerritory()) return;
+
+    // always refresh info from state
     const territoryName = idToName(p.id);
     const info = latestState.territories?.[territoryName];
 
+    // ---- PHASE LOGIC ----
     if (phase === "setup") {
-      IncPlayers();
-      if (await isUnoccupied(territoryName)) {
-        await placeArmy(territoryName, currentPlayer, 1);
-
+      if (!await isUnoccupied(territoryName)) return;
+    
+      await placeArmy(territoryName, currentPlayer, 1);
+      await updateState();
+    
+      const data = await fetch("/api/availableSet", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({})
+      }).then(r => r.json());
+    
+      if (data.out.length === 0) {
+        const start = await fetch("/api/start", { method: "POST" }).then(r => r.json());
+        currentPlayer = start.turn;
+        phase = "deploy";
+        updateHud();
+        await updateState();
+      } else {
         currentPlayer = (currentPlayer % 2) + 1;
         updateHud();
-
-        const response = await fetch("/api/availableSet", {
-          method: "POST",
-          headers: {"Content-Type": "application/json"},
-          body: JSON.stringify({})
-        });
-        const data = await response.json();
-        if (data.out.length === 0) {
-          phase = "reinforcement";
-          updateHud();
-        }
-      }
-    } else if (phase === "reinforcement") {
-      if (info && info.owner === currentPlayer) {
-        await placeArmy(territoryName, currentPlayer, 1);
       }
     }
+
+    else if (phase === "deploy") {
+      if (!info || info.owner !== currentPlayer) return;
+      await placeArmy(territoryName, currentPlayer, 1);
+      await updateState();
+    }
+
+    else if (phase === "attack") {
+      // for now: selection only (no placement)
+      selectedId = p.id;
+      repaint();
+    }
+
+    else if (phase === "reinforce") {
+      // use your moveOrigin/moveTarget globals (make sure names match)
+      // 1) pick origin
+      if (!moveOrigin) {
+        if (!info || info.owner !== currentPlayer) return;
+        if ((info.armies || 0) < 2) return;
+      
+        moveOrigin = territoryName;
+      
+        const data = await fetch("/api/availableMove", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({ territory: moveOrigin, player: currentPlayer })
+        }).then(r => r.json());
+      
+        moveTarget = new Set(data.out || []);
+        lasthighlighted = new Set([...moveTarget].map(nameToId)); // highlight ids, not names
+        repaint();
+        return;
+      }
+    
+      // 2) pick destination
+      if (!moveTarget.has(territoryName)) {
+        moveOrigin = null;
+        moveTarget.clear();
+        lasthighlighted.clear();
+        repaint();
+        return;
+      }
+    
+      await fetch("/api/move", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ home: moveOrigin, territory: territoryName, player: currentPlayer, army: 1 })
+      });
+    
+      moveOrigin = null;
+      moveTarget.clear();
+      lasthighlighted.clear();
+      await updateState();
+    }
+
 
     if (info) {
       selectedEl.textContent = `Selected: ${territoryName} | Owner: Player ${info.owner} | Troops: ${info.armies} | Phase: ${phase}`;

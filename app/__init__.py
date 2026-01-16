@@ -23,6 +23,19 @@ def initialize_db():
   # addTerritory("Ukraine", 1, 1)
   # # test purposes
 
+def getTurn():
+    db = sqlite3.connect(DB_FILE)
+    c = db.cursor()
+    turn = c.execute("SELECT turn FROM games").fetchone()[0]
+    db.close()
+    return turn
+
+def requireTurn(player):
+    turn = getTurn()
+    if turn != 0 and turn != player:
+        return False
+    return True
+
 
 @app.route("/", methods=['GET'])
 def index():
@@ -100,6 +113,15 @@ def game_test():
         return redirect(url_for("login"))
     return render_template("game.html")
 
+@app.route("/api/start", methods=['POST'])
+def start():
+    db = sqlite3.connect(DB_FILE)
+    c = db.cursor()
+    c.execute("UPDATE games SET turn = ?", (1,))
+    db.commit()
+    db.close()
+    return jsonify(success=True, turn=1)
+
 @app.route("/api/map", methods=['GET'])
 def returnMap():
     return jsonify(game.getMapInfo())
@@ -107,9 +129,12 @@ def returnMap():
 @app.route('/api/addTerritory', methods=['POST'])
 def addTerritory():
     data = request.get_json()
+    player = data.get('player')
+    if not requireTurn(player):
+        return jsonify(success=False, error="Not your turn")
     home = data.get('home', None)
     army = data.get('army', 1)
-    game.addTerritory(home, data['territory'], data['player'], army)
+    game.addTerritory(home, data['territory'], player, army)
     return jsonify(success=True)
 
 @app.route('/api/availableSet', methods=['POST'])
@@ -122,6 +147,20 @@ def availableMove():
     data = request.get_json()
     out = game.availableMove(data['territory'], data['player'])
     return jsonify(out=out)
+
+@app.route('/api/move', methods=['POST'])
+def move():
+    data = request.get_json()
+    home = data["home"]
+    territory = data["territory"]
+    player = int(data["player"])
+    army = int(data.get("army", 1))
+
+    if not requireTurn(player):
+        return jsonify(success=False, error="Not your turn")
+    
+    game.addTerritory(home, territory, player, army)
+    return jsonify(success=True)
 
 @app.route('/api/attackTerritory', methods=['POST'])
 def attackTerritory():
