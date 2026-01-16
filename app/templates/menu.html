@@ -11,14 +11,17 @@
  <img src="https://www.bing.com/th/id/OIP.Vfh5xJ3ergGV3FWTnboB0wHaEl?w=266&h=211&c=8&rs=1&qlt=90&o=6&dpr=1.5&pid=3.1&rm=2" class="rounded">
 <br>
 
-
+<form action="{{ url_for('menu') }}" method="POST">
 <label for="range3" class="form-label">Player Count</label><br>
 <div class="d-inline-flex p-2">
 <input type="range" class="form-range" min="2" max="6" step="1" id="range3">
-</div>
 <br>
+</div>
 <output for="range3" id="rangeValue" aria-hidden="true"></output>
+<br>
 
+ <button type="submit" class="btn btn-outline-light">submit</button>
+<br>
 
 <script>
   const rangeInput = document.getElementById('range3');
@@ -31,11 +34,10 @@
   });
 </script>
 
+<br>
 
-<ul>
-  <li><a href="{{ url_for('game_test') }}">New Game</a></li>
+<a class="btn btn-outline-primary" href="{{ url_for('game_test') }}" role="button">Start Game</a> 
 
-</ul>
 {% endblock %}
 
 </div>
