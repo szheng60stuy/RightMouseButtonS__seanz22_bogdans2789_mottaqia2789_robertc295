@@ -32,20 +32,27 @@ let lasthighlighted = new Set();
 let phase = "setup";
 let currentPlayer = 1;
 
-const turnEl = document.querySelectorAll("turn");
+const turnEl = document.getElementById("turn"); 
 const phaseEl = document.getElementById("phase");
-const endSetupBtn = document.getElementById("endSetup");
 const resetBtn = document.getElementById("reset");
+const endTurnBtn = document.getElementById("endTurn");
 
 function updateHud() {
   if (phaseEl) phaseEl.textContent = `Phase: ${phase}`;
   if (turnEl) turnEl.textContent = `Current Player: Player ${currentPlayer}`;
 }
 
-if (endSetupBtn) {
-  endSetupBtn.addEventListener("click", () => {
+if (endTurnBtn) {
+  endTurnBtn.addEventListener("click", async () => {
+    const response = await fetch("/api/endTurn", {method: "POST"});
+    const data = await response.json();
+    currentPlayer = data.turn();
+    
     phase = "reinforcement";
+    selectedId = null;
+    lasthighlighted.clear();
     updateHud();
+    repaint();
   });
 }
 
@@ -148,6 +155,13 @@ function repaint() {
   }
 }
 
+function IncPlayers()
+{
+  currentPlayer++;
+  let players = 0; //PUT THE PLAYER NUMBER FUNCTION HERE
+  if (currentPlayer>players) currentPlayer = 1;
+}
+
 // -- Map / Neighbor Utilities --
 function neighborsOf(territory) {
   return (map && map[territory] && map[territory].neighbors) ? map[territory].neighbors : [];
@@ -174,6 +188,7 @@ function highlightAdjacent(neighbors) {
 // -- Init / Event Listeners --
 async function init() {
   await loadMap();
+  updateHud();
   updateState();
 }
 
@@ -200,15 +215,30 @@ layer.querySelectorAll("path").forEach(p => {
     const info = latestState.territories?.[territoryName];
 
     if (phase === "setup") {
+      IncPlayers();
       if (await isUnoccupied(territoryName)) {
         await placeArmy(territoryName, currentPlayer, 1);
+
+        currentPlayer = (currentPlayer % 2) + 1;
+        updateHud();
+
+        const response = await fetch("/api/availableSet", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({})
+        });
+        const data = await response.json();
+        if (data.out.length === 0) {
+          phase = "reinforcement";
+          updateHud();
+        }
       }
     } else if (phase === "reinforcement") {
       if (info && info.owner === currentPlayer) {
         await placeArmy(territoryName, currentPlayer, 1);
       }
     }
-    
+
     if (info) {
       selectedEl.textContent = `Selected: ${territoryName} | Owner: Player ${info.owner} | Troops: ${info.armies} | Phase: ${phase}`;
     } else {
