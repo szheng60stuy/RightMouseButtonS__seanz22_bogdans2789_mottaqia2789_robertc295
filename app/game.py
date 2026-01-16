@@ -273,7 +273,7 @@ def aMoveHelp(territory, player, tried): #helper function for availableMove
 
 def availableMove(territory, player): #returns list of territories available for movement given a chosen territory and player
 	nestedList = aMoveHelp(territory, player, [territory]) #this returns a nested list like ['Northwest Territory', ['Alaska'], ['Ontario', ['Greenland', ['Iceland']], ['Western United States']]]
-	return flatten(nestedList)
+	return flatten(nestedList[1:])
 
 def attackTerritory(territory, player, origin):
 	DB_FILE="conquest.db"
@@ -397,4 +397,3 @@ def getPlayers():
 	DB_FILE="conquest.db"
 	db = sqlite3.connect(DB_FILE)
 	c = db.cursor()
-
