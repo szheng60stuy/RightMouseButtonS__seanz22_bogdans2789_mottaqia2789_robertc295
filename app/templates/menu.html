@@ -1,10 +1,3 @@
-<!doctype html>
-<html lang="en" data-bs-theme="dark">    
-    <head>
-        <meta charset="utf-8">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
-    </head>
 
 <div class="text-center">
 {% extends "base.html" %}
@@ -15,10 +8,35 @@
 
 <p>Welcome, {{ username }}!</p>
 
+ <img src="https://www.bing.com/th/id/OIP.Vfh5xJ3ergGV3FWTnboB0wHaEl?w=266&h=211&c=8&rs=1&qlt=90&o=6&dpr=1.5&pid=3.1&rm=2" class="rounded">
+<br>
+
+
+<label for="range3" class="form-label">Player Count</label><br>
+<div class="d-inline-flex p-2">
+<input type="range" class="form-range" min="2" max="6" step="1" id="range3">
+</div>
+<br>
+<output for="range3" id="rangeValue" aria-hidden="true"></output>
+
+
+<script>
+  const rangeInput = document.getElementById('range3');
+  const rangeOutput = document.getElementById('rangeValue');
+
+  rangeOutput.textContent = rangeInput.value;
+
+  rangeInput.addEventListener('input', function() {
+    rangeOutput.textContent = this.value;
+  });
+</script>
+
+
 <ul>
-  <li><a href="#">New Game</a></li>
-  <li><a href="#">Continue Game</a></li>
-  <li><a href="#">Rules</a></li>
+  <li><a href="{{ url_for('game_test') }}">New Game</a></li>
+
 </ul>
 {% endblock %}
+
 </div>
+
