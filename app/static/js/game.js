@@ -1,13 +1,13 @@
 // -- Constants / Color Helpers --
-const defaultColor = "#eaeaea";
+const defaultColor = "#f2f2f2";
 const PLAYER_COLORS = {
-  0: "#eaeaea",
-  1: "#bcdcff",
-  2: "#ffd6d6",
-  3: "#d6ffd9",
-  4: "#fff3b0",
-  5: "#e3d6ff",
-  6: "#7f70ff",
+  0: "#f2f2f2",
+  1: "#FFB7D5",
+  2: "#FF9AA2",
+  3: "#C77DFF",
+  4: "#BDE0FE",
+  5: "#FFC8A2",
+  6: "#80ED99",
 };
 
 function baseColorFor(id) {
@@ -353,7 +353,7 @@ function applyState(state) {
     const id = nameToId(territory);
     const el = document.getElementById(id);
     if (el) {
-      el.style.fill = PLAYER_COLORS[info.owner] || "#eaeaea";
+      el.style.fill = PLAYER_COLORS[info.owner] || "#f2f2f2";
     }
   }
 }
@@ -369,7 +369,7 @@ function repaint() {
 
   lasthighlighted.forEach(id => {
     const el = document.getElementById(id);
-    if (el) el.style.fill = "#f7e3a1";
+    if (el) el.style.fill = "#FFD6A5";
   });
 
   if (selectedId) {
@@ -425,6 +425,7 @@ layer.querySelectorAll("path").forEach(p => {
   p.style.transition = "fill 120ms, stroke-width 120ms";
   p.style.stroke = "#111";
   p.style.strokeWidth = "1";
+  p.style.strokeLinejoin = "round";
 
   p.addEventListener("mouseenter", () => {
     p.style.strokeWidth = "2";

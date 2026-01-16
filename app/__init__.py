@@ -112,6 +112,16 @@ def menu():
     if 'username' not in session:
         return redirect(url_for('login'))
     
+    db = sqlite3.connect(DB_FILE)
+    c = db.cursor()
+    c.execute("UPDATE territories SET armies = 0")
+    c.execute(
+        "UPDATE games SET armies = ?, p1 = ?, p2 = ?, p3 = ?, p4 = ?, p5 = ?, p6 = ?, turn = ?",
+        ("0, 0, 0, 0, 0, 0", "", "", "", "", "", "", 0)
+    )
+    db.commit()
+    db.close()
+
     if request.method == "POST":
         players = int(request.form.get("players", 2))
         players = max(2, min(players, 6))
