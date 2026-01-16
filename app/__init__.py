@@ -104,6 +104,10 @@ def game_test():
 def returnMap():
     return jsonify(game.getMapInfo())
 
+@app.route("/api/getPlayers", methods=['GET'])
+def returnMap():
+    return jsonify(game.getPlayers())
+
 @app.route('/api/addTerritory', methods=['POST'])
 def addTerritory():
     data = request.get_json()

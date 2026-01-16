@@ -272,7 +272,7 @@ def aMoveHelp(territory, player, tried): #helper function for availableMove
 
 def availableMove(territory, player): #returns list of territories available for movement given a chosen territory and player
 	nestedList = aMoveHelp(territory, player, [territory]) #this returns a nested list like ['Northwest Territory', ['Alaska'], ['Ontario', ['Greenland', ['Iceland']], ['Western United States']]]
-	return flatten(nestedList)
+	return flatten(nestedList[1:])
 
 def attackTerritory(territory, player, origin):
 	DB_FILE="conquest.db"
@@ -319,7 +319,18 @@ def availableAttack(territory, player): #returns list of territories the player 
 	c = db.cursor()
 	result = []
 	tried = []
-	owned = c.execute(f'SELECT p1 FROM games').fetchone()[0].split(', ')
+	if player == 1:
+		owned = c.execute(f'SELECT p1 FROM games').fetchone()[0].split(', ')
+	if player == 2:
+		owned = c.execute(f'SELECT p2 FROM games').fetchone()[0].split(', ')
+	if player == 3:
+		owned = c.execute(f'SELECT p3 FROM games').fetchone()[0].split(', ')
+	if player == 4:
+		owned = c.execute(f'SELECT p4 FROM games').fetchone()[0].split(', ')
+	if player == 5:
+		owned = c.execute(f'SELECT p5 FROM games').fetchone()[0].split(', ')
+	if player == 6:
+		owned = c.execute(f'SELECT p6 FROM games').fetchone()[0].split(', ')
 	army = c.execute("SELECT armies FROM territories WHERE name = ?", (territory, )).fetchone()[0]
 	if army > 1:
 		connects = c.execute(f'SELECT connected FROM territories WHERE name = ?', (territory, )).fetchone()[0].split(', ')
@@ -380,3 +391,12 @@ def getMapInfo() -> dict:
 def getNeighbors(territory):
 	info = map_info.get(territory, [])
 	return info[1:]  # return neighbors excluding the continent name
+
+def getPlayers():
+	DB_FILE="conquest.db"
+	db = sqlite3.connect(DB_FILE)
+	c = db.cursor()
+	result = c.execute(f'SELECT armies FROM games').fetchone()[0].split(', ')
+	return result
+
+print(getPlayers())
