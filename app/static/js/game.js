@@ -1,3 +1,4 @@
+// -- Constants / Color Helpers --
 const defaultColor = "#eaeaea";
 const PLAYER_COLORS = {
   0: "#eaeaea",
@@ -18,20 +19,35 @@ function baseColorFor(id) {
   return PLAYER_COLORS[info.owner] || defaultColor;
 }
 
-function repaint() {
-  if (latestState) applyState(latestState);
+// -- Global State / DOM Refs --
+let map = null;
+let latestState = null;
 
-  lasthighlighted.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.style.fill = "#f7e3a1";
-  });
+const layer = document.getElementById("layer4"); // contains the 42 territories
+const selectedEl = document.getElementById("selected"); // get selected territory display
 
-  if (selectedId) {
-    const el = document.getElementById(selectedId);
-    if (el) el.style.fill = "#bcdcff";
-  }
+let selectedId = null;
+let lasthighlighted = new Set();
+
+let phase = "setup";
+let currentPlayer = 1;
+
+// -- ID/Name Conversion Helpers --
+
+// helper function to convert from id
+function idToName(id) {
+  return id
+    .split("_")
+    .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
 }
-let map = null
+
+// helper function to convert name into id
+function nameToId(name) {
+  return name.toLowerCase().replaceAll(" ", "_");
+}
+
+// -- Data Fetching / API Calls --
 
 async function loadMap() {
   const response = await fetch("/api/map");
@@ -53,12 +69,6 @@ async function isUnoccupied(territory) {
   return data.out.includes(territory);
 }
 
-let latestState = null;
-async function updateState() {
-  latestState = await fetchState();
-  repaint();
-}
-
 async function placeArmy(territory, player, army=1) {
   const response = await fetch("/api/addTerritory", {
     method: "POST",
@@ -67,6 +77,13 @@ async function placeArmy(territory, player, army=1) {
   });
   await updateState();
 }
+
+async function updateState() {
+  latestState = await fetchState();
+  repaint();
+}
+
+// -- Rendering / UI Updates --
 
 function applyState(state) {
   for (const [territory, info] of Object.entries(state.territories)) {
@@ -78,33 +95,28 @@ function applyState(state) {
   }
 }
 
+function repaint() {
+  if (latestState) applyState(latestState);
+
+  lasthighlighted.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.fill = "#f7e3a1";
+  });
+
+  if (selectedId) {
+    const el = document.getElementById(selectedId);
+    if (el) el.style.fill = "#bcdcff";
+  }
+}
+
+// -- Map / Neighbor Utilities --
 function neighborsOf(territory) {
   return (map && map[territory] && map[territory].neighbors) ? map[territory].neighbors : [];
 }
 
-const layer = document.getElementById("layer4"); // contains the 42 territories
-const selectedEl = document.getElementById("selected"); // get selected territory display
-
-
-let selectedId = null;  
-
-// helper function to convert from id
-function idToName(id) {
-  return id
-  .split("_")
-  .map(w => w.charAt(0).toUpperCase() + w.slice(1))
-  .join(" ");
-}
-
-// helper function to convert name into id
-function nameToId(name) {
-  return name.toLowerCase().replaceAll(" ", "_");
-}
-
-// function to clear previous highlights
-let lasthighlighted = new Set();
-
-
+// -- Highlight Helpers --
+   Highlight Helpers
+   ========================= */
 function clearHighlights() {
   lasthighlighted.clear();
   repaint();
@@ -122,6 +134,7 @@ function highlightAdjacent(neighbors) {
   });
 }
 
+// -- Init / Event Listeners --
 async function init() {
   await loadMap();
   updateState();
@@ -143,6 +156,7 @@ layer.querySelectorAll("path").forEach(p => {
     p.style.strokeWidth = "1";
     repaint();
   });
+
   // highlight selected territory and adjacent territories
   p.addEventListener("click",async () => {
     // unselect old territory
@@ -155,7 +169,7 @@ layer.querySelectorAll("path").forEach(p => {
     if (await isUnoccupied(territoryName)) {
       await placeArmy(territoryName, 1, 1); // assuming player 1 for now
     } else {
-    repaint();
+      repaint();
     }
 
     if (selectedId) selectedEl.textContent = `Selected Territory: ${territoryName}`;
