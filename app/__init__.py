@@ -160,6 +160,17 @@ def state():
       }
   return jsonify(territories=out, turn=game_row[6])
 
+@app.route('/api/endTurn', methods=['POST'])
+def endTurn():
+   db = sqlite3.connect(DB_FILE)
+   c = db.cursor()
+   turn = c.execute("SELECT turn FROM games").fetchone()[0]
+   nextTurn = (turn % 2) + 1
+   c.execute("UPDATE games SET turn = ?", (nextTurn,))
+   db.commit()
+   db.close()
+   return jsonify(turn=nextTurn)
+
 @app.route('/api/reset', methods=['POST'])
 def reset():
     db = sqlite3.connect(DB_FILE)
