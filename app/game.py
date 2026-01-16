@@ -313,24 +313,21 @@ def check(territory, player): #checks if given player owns that territory
 	else:
 		return False
 
-def availableAttack(player): #returns list of territories the player can attack
+def availableAttack(territory, player): #returns list of territories the player can attack
 	DB_FILE="conquest.db"
 	db = sqlite3.connect(DB_FILE)
 	c = db.cursor()
 	result = []
 	tried = []
 	owned = c.execute(f'SELECT p1 FROM games').fetchone()[0].split(', ')
-	for plot in owned:
-		army = c.execute("SELECT armies FROM territories WHERE name = ?", (plot, )).fetchone()[0]
-		if army > 1:
-			connects = c.execute(f'SELECT connected FROM territories WHERE name = ?', (plot, )).fetchone()[0].split(', ')
-			for connect in connects:
-				if connect not in tried and connect not in result and connect not in owned:
-					result.append(connect)
-				if connect not in tried:
-					tried.append(connect)
-		if plot not in tried:
-			tried.append(plot)
+	army = c.execute("SELECT armies FROM territories WHERE name = ?", (territory, )).fetchone()[0]
+	if army > 1:
+		connects = c.execute(f'SELECT connected FROM territories WHERE name = ?', (territory, )).fetchone()[0].split(', ')
+		for connect in connects:
+			if connect not in tried and connect not in result and connect not in owned:
+				result.append(connect)
+			if territory not in tried:
+				tried.append(plot)
 	db.commit()
 	db.close()
 	return result
@@ -383,5 +380,3 @@ def getMapInfo() -> dict:
 def getNeighbors(territory):
 	info = map_info.get(territory, [])
 	return info[1:]  # return neighbors excluding the continent name
-
-
