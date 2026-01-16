@@ -7,6 +7,12 @@ DB_FILE = "conquest.db"
 
 def initialize_db():
   game.make_tables()
+  db = sqlite3.connect(DB_FILE)
+  c = db.cursor()
+  count = c.execute("SELECT COUNT(*) FROM games").fetchone()[0]
+  db.close()
+  if count == 0:
+    game.set_game()
   # set_game() #test purposes
   # addTerritory("Alaska", 1, 1)
   # addTerritory("Northwest Territory", 1, 1)
@@ -102,6 +108,7 @@ def returnMap():
 def addTerritory():
     data = request.get_json()
     game.addTerritory(data['territory'], data['player'], data['army'])
+    return jsonify(success=True)
 
 @app.route('/api/availableSet', methods=['POST'])
 def availableSet():
@@ -118,12 +125,38 @@ def availableMove():
 def attackTerritory():
     data = request.get_json()
     game.attackTerritory(data['territory'], data['player'], data['origin'])
+    return jsonify(success=True)
 
 @app.route('/api/availableAttack', methods=['POST'])
 def availableAttack():
     data = request.get_json()
     out = game.availableAttack(data['player'])
     return jsonify(out=out)
+
+@app.route('/api/state', methods=['GET'])
+def state():
+  db = sqlite3.connect(DB_FILE)
+  c = db.cursor()
+
+  terr_rows = c.execute("SELECT name, armies FROM territories").fetchall()
+  game_row = c.execute("SELECT p1, p2, p3, p4, p5, p6, turn FROM games").fetchone()
+  db.close()
+
+  owners = {}
+  for index, player in enumerate(game_row[0:6], start=1):
+      if not player:
+          continue
+      for territory in player.split(", "):
+         territory = territory.strip()
+         if territory:
+             owners[territory] = index
+  out = {}
+  for name, armies in terr_rows:
+      out[name] = {
+          "armies": armies,
+          "owner": owners.get(name, 0)
+      }
+  return jsonify(territories=out, turn=game_row[6])
 
 if __name__ == "__main__":
     initialize_db()
