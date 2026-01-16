@@ -1,12 +1,12 @@
-from flask import Flask, request, session, redirect, url_for, render_template
+from flask import Flask, request, session, redirect, url_for, render_template, jsonify
 import sqlite3
-from game import make_tables, set_game, addTerritory
+import game
 app = Flask(__name__)
 app.secret_key = "secret_key_testing"
 DB_FILE = "conquest.db"
 
 def initialize_db():
-  make_tables()
+  game.make_tables()
   # set_game() #test purposes
   # addTerritory("Alaska", 1, 1)
   # addTerritory("Northwest Territory", 1, 1)
@@ -93,6 +93,37 @@ def game_test():
     if "username" not in session:
         return redirect(url_for("login"))
     return render_template("game.html")
+
+@app.route("/api/map", methods=['GET'])
+def returnMap():
+    return jsonify(game.getMapInfo())
+
+@app.route('/api/addTerritory', methods=['POST'])
+def addTerritory():
+    data = request.get_json()
+    game.addTerritory(data['territory'], data['player'], data['army'])
+
+@app.route('/api/availableSet', methods=['POST'])
+def availableSet():
+    out = game.availableSet()
+    return jsonify(out=out)
+
+@app.route('/api/availableMove', methods=['POST'])
+def availableMove():
+    data = request.get_json()
+    out = game.availableMove(data['territory'], data['player'])
+    return jsonify(out=out)
+
+@app.route('/api/attackTerritory', methods=['POST'])
+def attackTerritory():
+    data = request.get_json()
+    game.attackTerritory(data['territory'], data['player'], data['origin'])
+
+@app.route('/api/availableAttack', methods=['POST'])
+def availableAttack():
+    data = request.get_json()
+    out = game.availableAttack(data['player'])
+    return jsonify(out=out)
 
 if __name__ == "__main__":
     initialize_db()

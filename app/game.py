@@ -10,18 +10,7 @@ import math
 
 ####################################### SETUP ###################################
 
-def set_game():
-	DB_FILE="conquest.db"
-	db = sqlite3.connect(DB_FILE)
-	c = db.cursor()
-	command = 'INSERT INTO games VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
-	vars = (0, '', '', '', '', '', '', 0)
-	c.execute(command, vars)
-	db.commit()
-	db.close()
-
-def set_territories():
-	map_info = {
+map_info = {
     # --- North America ---
     "Alaska": ["North America", "Northwest Territory", "Alberta", "Kamchatka"],
     "Northwest Territory": ["North America", "Alaska", "Alberta", "Ontario", "Greenland"],
@@ -75,8 +64,20 @@ def set_territories():
     "New Guinea": ["Australia", "Indonesia", "Western Australia", "Eastern Australia"],
     "Western Australia": ["Australia", "Indonesia", "New Guinea", "Eastern Australia"],
     "Eastern Australia": ["Australia", "Western Australia", "New Guinea"]
-	}
+}
 
+
+def set_game():
+	DB_FILE="conquest.db"
+	db = sqlite3.connect(DB_FILE)
+	c = db.cursor()
+	command = 'INSERT INTO games VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+	vars = (0, '', '', '', '', '', '', 0)
+	c.execute(command, vars)
+	db.commit()
+	db.close()
+
+def set_territories():
 	DB_FILE="conquest.db"
 	db = sqlite3.connect(DB_FILE)
 	c = db.cursor()
@@ -255,7 +256,7 @@ def attackTerritory(territory, player, origin):
 	DB_FILE="conquest.db"
 	db = sqlite3.connect(DB_FILE)
 	c = db.cursor()
-	if (origin in c.execute(f'SLECT connected FROM territories WHERE name = {territory}')):
+	if (territory in availableAttack(player)):
 		if (random.randint(0,1) == 1): #attack success
 			armiesOrig = c.execute(f'SELECT armies FROM territories WHERE name = {origin}')-1
 			if (armiesOrig<1):
@@ -338,7 +339,36 @@ def addArmy(player): #adds army
 	aus = c.execute(f'SELECT name FROM territories WHERE group = ?', ("Australia", )).fetchone()[0].split(', ')
 	groups = [northA, southA, eu, africa, asia, aus]
 #print(contBonus(1))
-#print(availableMove("Northwest Territory", 1))
-#print(availableAttack(1))
-#print(check("Greenland", 1))
-#print(availableSet())
+
+def getMapInfo() -> dict:
+	out = {}
+	for territory, info in map_info.items():
+		if not info:
+			continue
+		out[territory] = {"continent": info[0], "neighbors": info[1:]}
+	return out
+
+def getNeighbors(territory):
+	info = map_info.get(territory, [])
+	return info[1:]  # return neighbors excluding the continent name
+
+# def contBonus(player):
+# 	DB_FILE="conquest.db"
+# 	db = sqlite3.connect(DB_FILE)
+# 	c = db.cursor()
+# 	if player == 1:
+# 		owned = c.execute("SELECT p1 FROM games").fetchone()[0].split(', ')
+# 	if player == 2:
+# 		owned = c.execute(f'SELECT p2 FROM games').fetchone()[0].split(', ')
+# 	if player == 3:
+# 		owned = c.execute(f'SELECT p3 FROM games').fetchone()[0].split(', ')
+# 	if player == 4:
+# 		owned = c.execute(f'SELECT p4 FROM games').fetchone()[0].split(', ')
+# 	if player == 5:
+# 		owned = c.execute(f'SELECT p5 FROM games').fetchone()[0].split(', ')
+# 	if player == 6:
+# 		owned = c.execute(f'SELECT p6 FROM games').fetchone()[0].split(', ')
+# 	added = math.floor(len(owned) / 3);
+# 	# North America Bonus
+# 	northA = c.execute(f'SELECT name FROM territories WHERE group = ?', ("North America", ))
+
