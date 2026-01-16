@@ -141,13 +141,32 @@ def returnPlayer():
 @app.route('/api/addTerritory', methods=['POST'])
 def addTerritory():
     data = request.get_json()
-    player = data.get('player')
+
+    territory = data["territory"]
+    player = int(data["player"])
+    army = int(data.get("army", 1))
+    home = data.get("home", None)
+
     if not requireTurn(player):
         return jsonify(success=False, error="Not your turn")
-    home = data.get('home', None)
-    army = data.get('army', 1)
-    game.addTerritory(home, data['territory'], player, army)
+    
+    if home is None:
+        db = sqlite3.connect(DB_FILE)
+        c = db.cursor()
+        armiesStr = c.execute("SELECT armies FROM games").fetchone()[0]
+        db.close()
+
+        pools = [int(x.strip()) for x in armiesStr.split(",") if x.strip() != ""]
+        while len(pools) < 6:
+            pools.append(0)
+
+        if pools[player - 1] < army:
+            print("ADD:", "player", player, "home", home, "army", army, "pools", pools)
+            return jsonify(success=False, error="No armies left in pool")
+
+    game.addTerritory(home, territory, player, army)
     return jsonify(success=True)
+
 
 @app.route('/api/availableSet', methods=['POST'])
 def availableSet():
@@ -192,11 +211,12 @@ def state():
   c = db.cursor()
 
   terr_rows = c.execute("SELECT name, armies FROM territories").fetchall()
-  game_row = c.execute("SELECT p1, p2, p3, p4, p5, p6, turn FROM games").fetchone()
+  game_row = c.execute("SELECT armies, p1, p2, p3, p4, p5, p6, turn FROM games").fetchone()
+  pools = [int(x.strip()) for x in game_row[0].split(",") if x.strip() != '']
   db.close()
 
   owners = {}
-  for index, player in enumerate(game_row[0:6], start=1):
+  for index, player in enumerate(game_row[1:7], start=1):
       if not player:
           continue
       for territory in player.split(", "):
@@ -209,7 +229,7 @@ def state():
           "armies": armies,
           "owner": owners.get(name, 0)
       }
-  return jsonify(territories=out, turn=game_row[6])
+  return jsonify(territories=out, turn=game_row[7], pools=pools, armies=pools)
 
 @app.route('/api/endTurn', methods=['POST'])
 def endTurn():

@@ -19,12 +19,41 @@ function baseColorFor(id) {
   return PLAYER_COLORS[info.owner] || defaultColor;
 }
 
+// --- Cached label positions ---
+const centroidCache = new Map();
+
+function approxCentroid(path, samples = 30) {
+  const total = path.getTotalLength();
+  let sx = 0, sy = 0;
+
+  for (let i = 0; i < samples; i++) {
+    const t = (i + 0.5) / samples;
+    const p = path.getPointAtLength(total * t);
+    sx += p.x;
+    sy += p.y;
+  }
+  return { x: sx / samples, y: sy / samples };
+}
+
+function buildCentroidCacheOnce() {
+  if (!layer) return;
+  if (centroidCache.size > 0) return;
+
+  layer.querySelectorAll("path").forEach(path => {
+    const id = path.id;
+    if (!id) return;
+    centroidCache.set(id, approxCentroid(path, 20));
+  });
+}
+
+
 // -- Global State / DOM Refs --
 let map = null;
 let latestState = null;
 
 const layer = document.getElementById("layer4"); // contains the 42 territories
 const selectedEl = document.getElementById("selected"); // get selected territory display
+const troopsEl = document.getElementById("troopsLeft");
 
 let selectedId = null;
 let lasthighlighted = new Set();
@@ -37,9 +66,7 @@ let moveOrigin = null;
 let moveTarget = new Set();
 
 function isMyTurn() {
-  if (!latestState) return true;
-  if (latestState.turn === 0) return true;
-  return latestState.turn === currentPlayer;
+  return true;
 }
 
 function canClickTerritory(territory) {
@@ -72,7 +99,11 @@ const toReinforceBtn = document.getElementById("toReinforce");
 function updateHud() {
   if (phaseEl) phaseEl.textContent = `Phase: ${phase}`;
   if (turnEl) turnEl.textContent = `Current Player: Player ${currentPlayer}`;
+
+  const pool = latestState?.armies?.[currentPlayer - 1];
+  if (troopsEl) troopsEl.textContent = `Troops left: ${pool ?? "?"}`;
 }
+
 
 if (toAttackBtn) {
   toAttackBtn.addEventListener("click", () => {
@@ -125,6 +156,80 @@ if (resetBtn) {
 }
 
 
+// --- Troop Labels (SVG text overlays) ---
+const svg = layer?.ownerSVGElement || document.querySelector("svg");
+let labelsLayer = null;
+
+function ensureLabelsLayer() {
+  if (!layer) return null;
+  if (labelsLayer) return labelsLayer;
+
+  labelsLayer = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  labelsLayer.setAttribute("id", "troopLabels");
+  labelsLayer.style.pointerEvents = "none";
+  layer.appendChild(labelsLayer);
+  return labelsLayer;
+}
+
+function getOrCreateLabel(id) {
+  const g = ensureLabelsLayer();
+  if (!g) return null;
+
+  let t = g.querySelector(`text[data-for='${id}']`);
+  if (t) return t;
+
+  t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+  t.setAttribute("data-for", id);
+  t.setAttribute("text-anchor", "middle");
+  t.setAttribute("dominant-baseline", "middle");
+  t.style.fontSize = "12px";
+  t.style.fontWeight = "700";
+  t.style.paintOrder = "stroke";
+  t.style.stroke = "white";
+  t.style.strokeWidth = "3px";
+  t.style.fill = "#111";
+  g.appendChild(t);
+  return t;
+}
+
+function updateTroopLabels(state) {
+  if (!state?.territories) return;
+
+  for (const [territoryName, info] of Object.entries(state.territories)) {
+    const id = nameToId(territoryName);
+    const path = document.getElementById(id);
+    if (!path) continue;
+
+    const pos = centroidCache.get(id);
+    if (!pos) continue;
+
+    const label = getOrCreateLabel(id);
+    if (!label) continue;
+
+    label.setAttribute("x", pos.x);
+    label.setAttribute("y", pos.y);
+
+    const n = Number(info.armies ?? 0);
+    label.textContent = n > 0 ? String(n) : "";
+  }
+}
+
+
+// centroid-ish point by sampling the path (usually inside, not on border)
+function approxCentroid(path, samples = 30) {
+  const total = path.getTotalLength();
+  let sx = 0, sy = 0;
+
+  for (let i = 0; i < samples; i++) {
+    const t = (i + 0.5) / samples;      // midpoints of each segment
+    const p = path.getPointAtLength(total * t);
+    sx += p.x;
+    sy += p.y;
+  }
+  return { x: sx / samples, y: sy / samples };
+}
+
+
 
 // -- ID/Name Conversion Helpers --
 
@@ -163,13 +268,19 @@ async function isUnoccupied(territory) {
   return data.out.includes(territory);
 }
 
-async function placeArmy(territory, player, army=1) {
+async function placeArmy(territory, player, army = 1) {
   const response = await fetch("/api/addTerritory", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({home: null, territory, player, army})
+    body: JSON.stringify({ home: null, territory, player, army })
   });
+  const data = await response.json();
+  if (!data.success) {
+    console.error(data.error);
+    return false;
+  }
   await updateState();
+  return true;
 }
 
 async function updateState() {
@@ -205,6 +316,8 @@ function repaint() {
     const el = document.getElementById(selectedId);
     if (el) el.style.fill = "#bcdcff";
   }
+
+  if (latestState) updateTroopLabels(latestState);
 }
 
 function IncPlayers()
@@ -241,12 +354,17 @@ function highlightAdjacent(neighbors) {
 async function init() {
   await loadMap();
 
-  const start = await fetch("/api/start", { method: "POST" }).then(r => r.json()); // initialize game state
-  playerCount = start.players || 2;
+  buildCentroidCacheOnce();
 
-  updateHud();
+  const start = await fetch("/api/start", { method: "POST" }).then(r => r.json());
+  playerCount = start.players || 2;
+  currentPlayer = 1;
+
   await updateState();
+  updateHud();
 }
+
+
 
 // animations and event listeners for each territory
 layer.querySelectorAll("path").forEach(p => {
@@ -276,10 +394,16 @@ layer.querySelectorAll("path").forEach(p => {
     // ---- PHASE LOGIC ----
     if (phase === "setup") {
       if (!await isUnoccupied(territoryName)) return;
-    
-      await placeArmy(territoryName, currentPlayer, 1);
+        
+      const ok = await placeArmy(territoryName, currentPlayer, 1);
+      if (!ok) return;
+        
+      // advance the turn on the server
+      await fetch("/api/endTurn", { method: "POST" });
+        
+      // resync client with server turn
       await updateState();
-    
+        
       const data = await fetch("/api/availableSet", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
@@ -289,16 +413,32 @@ layer.querySelectorAll("path").forEach(p => {
       if (data.out.length === 0) {
         phase = "deploy";
         updateHud();
-        await updateState();
-      } else {
-        currentPlayer = (currentPlayer % playerCount) + 1;
-        updateHud();
       }
+      return;
     }
 
     else if (phase === "deploy") {
       if (!info || info.owner !== currentPlayer) return;
-      await placeArmy(territoryName, currentPlayer, 1);
+    
+      const ok = await placeArmy(territoryName, currentPlayer, 1);
+      if (!ok) return;
+      await updateState();
+
+      const pools = latestState.armies || [];
+
+      const anyoneHasTroops = pools.slice(0, playerCount).some(x => x > 0);
+      if (!anyoneHasTroops) {
+        phase = "attack";
+        updateHud();
+        return;
+      }
+    
+      if ((pools[currentPlayer - 1] || 0) > 0) {
+        updateHud();
+        return;
+      }
+    
+      await fetch("/api/endTurn", { method: "POST" });
       await updateState();
     }
 
@@ -348,11 +488,15 @@ layer.querySelectorAll("path").forEach(p => {
     }
 
 
-    if (info) {
-      selectedEl.textContent = `Selected: ${territoryName} | Owner: Player ${info.owner} | Troops: ${info.armies} | Phase: ${phase}`;
+    const freshInfo = latestState?.territories?.[territoryName] || null;
+
+    if (freshInfo) {
+      selectedEl.textContent =
+        `Selected: ${territoryName} | Owner: Player ${freshInfo.owner} | Troops: ${freshInfo.armies} | Phase: ${phase}`;
     } else {
       selectedEl.textContent = `Selected: ${territoryName} | Unoccupied | Phase: ${phase}`;
     }
+
   });
 });
 
