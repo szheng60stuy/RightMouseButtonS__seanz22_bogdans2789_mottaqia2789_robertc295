@@ -30,6 +30,23 @@ def requireTurn(player):
         return False
     return True
 
+def alivePlayer(c, player: int) -> bool:
+    unoccupied = c.execute("SELECT COUNT(*) FROM territories WHERE armies = 0").fetchone()[0]
+    if unoccupied > 0:
+        return True
+
+    s = c.execute(f"SELECT p{player} FROM games").fetchone()[0] or ""
+    owned = [x.strip() for x in s.split(",") if x.strip()]
+    return len(owned) > 0
+
+
+def nextAliveTurn(c, current: int, players: int) -> int:
+    for _ in range(players):
+        current = (current % players) + 1
+        if alivePlayer(c, current):
+            return current
+    return current
+
 
 @app.route("/", methods=['GET'])
 def index():
@@ -253,7 +270,8 @@ def endTurn():
     db = sqlite3.connect(DB_FILE)
     c = db.cursor()
     turn = c.execute("SELECT turn FROM games").fetchone()[0]
-    nextTurn = (turn % players) + 1
+    nextTurn = nextAliveTurn(c, turn, players)
+    
     c.execute("UPDATE games SET turn = ?", (nextTurn,))
     db.commit()
     db.close()
@@ -271,7 +289,7 @@ def nextTurn():
    db = sqlite3.connect(DB_FILE)
    c = db.cursor()
    turn = c.execute("SELECT turn FROM games").fetchone()[0]
-   nextTurn = (turn % players) + 1
+   nextTurn = nextAliveTurn(c, turn, players)
    c.execute("UPDATE games SET turn = ?", (nextTurn,))
    db.commit()
    db.close()

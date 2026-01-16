@@ -96,21 +96,17 @@ function showWinScreen(winner) {
 
   const h = document.createElement("h1");
   h.textContent = `Player ${winner} wins!`;
-  h.style.margin = "0 0 12px 0";
+  h.style.marginBottom = "12px";
 
   const p = document.createElement("p");
   p.textContent = "Game over.";
-  p.style.margin = "0 0 20px 0";
+  p.style.marginBottom = "20px";
 
   const btn = document.createElement("button");
-  btn.textContent = "Play again";
-  btn.style.padding = "10px 14px";
-  btn.style.cursor = "pointer";
-  btn.addEventListener("click", async () => {
-    await resetGame();
-    gameOver = false;
-    const ov = document.getElementById("winOverlay");
-    if (ov) ov.remove();
+  btn.textContent = "Return to Menu";
+  btn.className = "btn btn-primary";
+  btn.addEventListener("click", () => {
+    window.location.href = "/menu";
   });
 
   card.appendChild(h);
