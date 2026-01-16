@@ -72,7 +72,7 @@ def set_game():
 	db = sqlite3.connect(DB_FILE)
 	c = db.cursor()
 	command = 'INSERT INTO games VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
-	vars = (0, '', '', '', '', '', '', 0)
+	vars = ('0, 0, 0, 0, 0, 0', '', '', '', '', '', '', 0)
 	c.execute(command, vars)
 	db.commit()
 	db.close()
@@ -110,7 +110,7 @@ def make_tables():
     c.execute("DROP TABLE IF EXISTS games")
     c.execute("""
         CREATE TABLE IF NOT EXISTS games (
-            armies INTEGER NOT NULL,
+            armies TEXT NOT NULL,
             p1 TEXT NOT NULL,
             p2 TEXT NOT NULL,
             p3 TEXT NOT NULL,
@@ -140,12 +140,15 @@ def make_tables():
 
 ####################### GAME LOGIC HELPER FUNCTIONS ####################################
 
-def addTerritory(territory, player, army): #adds # of army to a territory and updates it to the player in games db
+def addTerritory(home, territory, player, army): #adds # of army to a territory and updates it to the player in games db, home is the territory moving armies from
 	DB_FILE="conquest.db"
 	db = sqlite3.connect(DB_FILE)
 	c = db.cursor()
 	current = c.execute("SELECT armies FROM territories WHERE name = ?", (territory, )).fetchone()[0]
 	c.execute("UPDATE territories SET armies = ? WHERE name = ?", (current + army, territory))
+	if home != None:
+		current = c.execute("SELECT armies FROM territories WHERE name = ?", (home, )).fetchone()[0]
+		c.execute("UPDATE territories SET armies = ? WHERE name = ?", (current + army, home))
 	if player == 1:
 		current = c.execute(f'SELECT p1 FROM games').fetchone()[0].split(', ')
 		if current[0] == '':
@@ -313,22 +316,10 @@ def availableAttack(player): #returns list of territories the player can attack
 	db.close()
 	return result
 
-def addArmy(player): #adds army
+def addArmy(player): #adds army, used at start of each turn
 	DB_FILE="conquest.db"
 	db = sqlite3.connect(DB_FILE)
 	c = db.cursor()
-	if player == 1:
-		owned = c.execute("SELECT p1 FROM games").fetchone()[0].split(', ')
-	if player == 2:
-		owned = c.execute(f'SELECT p2 FROM games').fetchone()[0].split(', ')
-	if player == 3:
-		owned = c.execute(f'SELECT p3 FROM games').fetchone()[0].split(', ')
-	if player == 4:
-		owned = c.execute(f'SELECT p4 FROM games').fetchone()[0].split(', ')
-	if player == 5:
-		owned = c.execute(f'SELECT p5 FROM games').fetchone()[0].split(', ')
-	if player == 6:
-		owned = c.execute(f'SELECT p6 FROM games').fetchone()[0].split(', ')
 	added = math.floor(len(owned) / 3);
 	# bonus groups
 	northA = c.execute(f'SELECT name FROM territories WHERE group = ?', ("North America", )).fetchone()[0].split(', ')
@@ -338,7 +329,29 @@ def addArmy(player): #adds army
 	asia = c.execute(f'SELECT name FROM territories WHERE group = ?', ("Asia", )).fetchone()[0].split(', ')
 	aus = c.execute(f'SELECT name FROM territories WHERE group = ?', ("Australia", )).fetchone()[0].split(', ')
 	groups = [northA, southA, eu, africa, asia, aus]
-#print(contBonus(1))
+	cont = 0
+	for group in groups: #check if player owns each continent group
+		cont += 1
+		add = True
+		for terr in group:
+			if not check(terr, player):
+				add = False
+		if add and (group == 1 or group == 3): #the continent bonuses vary
+			added += 5
+		if add and (group == 2 or group == 6):
+			added += 2
+		if add and group == 4:
+			added += 4
+		if add and group == 5:
+			added += 7
+	armies = c.execute(f'SELECT armies FROM games').fetchone()[0].split(', ')
+	armies[player - 1] = str(added + int(armies[player - 1]))
+	update = ""
+	for army in armies:
+		update += army
+		update += ", "
+	c.execute("UPDATE games SET armies = ?", (update, ))
+	print(added + " army added to player " + player)
 
 def getMapInfo() -> dict:
 	out = {}
@@ -352,23 +365,4 @@ def getNeighbors(territory):
 	info = map_info.get(territory, [])
 	return info[1:]  # return neighbors excluding the continent name
 
-# def contBonus(player):
-# 	DB_FILE="conquest.db"
-# 	db = sqlite3.connect(DB_FILE)
-# 	c = db.cursor()
-# 	if player == 1:
-# 		owned = c.execute("SELECT p1 FROM games").fetchone()[0].split(', ')
-# 	if player == 2:
-# 		owned = c.execute(f'SELECT p2 FROM games').fetchone()[0].split(', ')
-# 	if player == 3:
-# 		owned = c.execute(f'SELECT p3 FROM games').fetchone()[0].split(', ')
-# 	if player == 4:
-# 		owned = c.execute(f'SELECT p4 FROM games').fetchone()[0].split(', ')
-# 	if player == 5:
-# 		owned = c.execute(f'SELECT p5 FROM games').fetchone()[0].split(', ')
-# 	if player == 6:
-# 		owned = c.execute(f'SELECT p6 FROM games').fetchone()[0].split(', ')
-# 	added = math.floor(len(owned) / 3);
-# 	# North America Bonus
-# 	northA = c.execute(f'SELECT name FROM territories WHERE group = ?', ("North America", ))
 
