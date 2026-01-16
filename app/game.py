@@ -98,6 +98,7 @@ def make_tables():
     DB_FILE="conquest.db"
     db = sqlite3.connect(DB_FILE)
     c = db.cursor()
+    c.execute("DROP TABLE IF EXISTS territories")
     c.execute("""
         CREATE TABLE IF NOT EXISTS territories (
             id INTEGER PRIMARY KEY NOT NULL,
@@ -144,63 +145,82 @@ def addTerritory(home, territory, player, army): #adds # of army to a territory 
 	DB_FILE="conquest.db"
 	db = sqlite3.connect(DB_FILE)
 	c = db.cursor()
-	current = c.execute("SELECT armies FROM territories WHERE name = ?", (territory, )).fetchone()[0]
-	c.execute("UPDATE territories SET armies = ? WHERE name = ?", (current + army, territory))
+	adding = True
 	if home != None:
 		current = c.execute("SELECT armies FROM territories WHERE name = ?", (home, )).fetchone()[0]
-		c.execute("UPDATE territories SET armies = ? WHERE name = ?", (current - army, home))
-	if player == 1:
-		current = c.execute(f'SELECT p1 FROM games').fetchone()[0].split(', ')
-		if current[0] == '':
-			current[0] = territory.strip()
+		if current > 1:
+			c.execute("UPDATE territories SET armies = ? WHERE name = ?", (current - army, home))
+			current = c.execute("SELECT armies FROM territories WHERE name = ?", (territory, )).fetchone()[0]
+			c.execute("UPDATE territories SET armies = ? WHERE name = ?", (current + army, territory))
 		else:
-			current.append(territory.strip())
-		ownedplot = ""
-		for plot in current:
-			ownedplot += plot + ", "
-		c.execute("UPDATE games SET p1 = ?", (ownedplot[0: len(ownedplot) - 2], ))
-	if player == 2:
-		current = c.execute(f'SELECT p2 FROM games').fetchone()[0].split(', ')
-		if current[0] == '':
-			current[0] = territory
-		ownedplot = ""
-		for plot in current:
-			ownedplot += plot + ", "
-		c.execute("UPDATE games SET p2 = ?", (ownedplot[0: len(ownedplot) - 2], ))
-	if player == 3:
-		current = c.execute(f'SELECT p3 FROM games').fetchone()[0].split(', ')
-		if current[0] == '':
-			current[0] = territory
-		ownedplot = ""
-		for plot in current:
-			ownedplot += plot + ", "
-		c.execute("UPDATE games SET p3 = ?", (ownedplot[0: len(ownedplot) - 2], ))
-	if player == 4:
-		current = c.execute(f'SELECT p4 FROM games').fetchone()[0].split(', ')
-		if current[0] == '':
-			current[0] = territory
-		ownedplot = ""
-		for plot in current:
-			ownedplot += plot + ", "
-		c.execute("UPDATE games SET p4 = ?", (ownedplot[0: len(ownedplot) - 2], ))
-	if player == 5:
-		current = c.execute(f'SELECT p5 FROM games').fetchone()[0].split(', ')
-		if current[0] == '':
-			current[0] = territory
-		ownedplot = ""
-		for plot in current:
-			ownedplot += plot + ", "
-		c.execute("UPDATE games SET p5 = ?", (ownedplot[0: len(ownedplot) - 2], ))
-	if player == 6:
-		current = c.execute(f'SELECT p6 FROM games').fetchone()[0].split(', ')
-		if current[0] == '':
-			current[0] = territory
-		ownedplot = ""
-		for plot in current:
-			ownedplot += plot + ", "
-		c.execute("UPDATE games SET p6 = ?", (ownedplot[0: len(ownedplot) - 2], ))
-	db.commit()
-	db.close()
+			adding = False
+	if home == None:
+		current = c.execute("SELECT armies FROM territories WHERE name = ?", (territory, )).fetchone()[0]
+		c.execute("UPDATE territories SET armies = ? WHERE name = ?", (current + army, territory))
+	if adding:
+		if player == 1:
+			current = c.execute(f'SELECT p1 FROM games').fetchone()[0].split(', ')
+			if current[0] == '':
+				current[0] = territory.strip()
+			elif territory not in current:
+				current.append(territory.strip())
+			ownedplot = ""
+			for plot in current:
+				ownedplot += plot + ", "
+			c.execute("UPDATE games SET p1 = ?", (ownedplot[0: len(ownedplot) - 2], ))
+		if player == 2:
+			current = c.execute(f'SELECT p2 FROM games').fetchone()[0].split(', ')
+			if current[0] == '':
+				current[0] = territory.strip()
+			elif territory not in current:
+				current.append(territory.strip())
+			ownedplot = ""
+			for plot in current:
+				ownedplot += plot + ", "
+			c.execute("UPDATE games SET p2 = ?", (current[0: len(ownedplot) - 2]))
+		if player == 3:
+			current = c.execute(f'SELECT p3 FROM games').fetchone()[0].split(', ')
+			if current[0] == '':
+				current[0] = territory.strip()
+			elif territory not in current:
+				current.append(territory.strip())
+			ownedplot = ""
+			for plot in current:
+				ownedplot += plot + ", "
+			c.execute("UPDATE games SET p3 = ?", (current[0: len(ownedplot) - 2]))
+		if player == 4:
+			current = c.execute(f'SELECT p4 FROM games').fetchone()[0].split(', ')
+			if current[0] == '':
+				current[0] = territory.strip()
+			elif territory not in current:
+				current.append(territory.strip())
+			ownedplot = ""
+			for plot in current:
+				ownedplot += plot + ", "
+			c.execute("UPDATE games SET p4 = ?", (current[0: len(ownedplot) - 2]))
+		if player == 5:
+			current = c.execute(f'SELECT p5 FROM games').fetchone()[0].split(', ')
+			if current[0] == '':
+				current[0] = territory.strip()
+			elif territory not in current:
+				current.append(territory.strip())
+			ownedplot = ""
+			for plot in current:
+				ownedplot += plot + ", "
+			c.execute("UPDATE games SET p5 = ?", (current[0: len(ownedplot) - 2]))
+		if player == 6:
+			current = c.execute(f'SELECT p6 FROM games').fetchone()[0].split(', ')
+			if current[0] == '':
+				current[0] = territory.strip()
+			elif territory not in current:
+				current.append(territory.strip())
+			ownedplot = ""
+			for plot in current:
+				ownedplot += plot + ", "
+			c.execute("UPDATE games SET p6 = ?", (current[0: len(ownedplot) - 2]))
+		db.commit()
+		db.close()
+		print("territory added")
 
 
 def availableSet(): #returns list of territories still unoccupied

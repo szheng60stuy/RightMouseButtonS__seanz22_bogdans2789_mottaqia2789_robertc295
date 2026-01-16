@@ -6,18 +6,20 @@ app.secret_key = "secret_key_testing"
 DB_FILE = "conquest.db"
 
 def initialize_db():
+  print("making")
   game.make_tables()
   db = sqlite3.connect(DB_FILE)
   c = db.cursor()
   count = c.execute("SELECT COUNT(*) FROM games").fetchone()[0]
+  db.commit()
   db.close()
   if count == 0:
     game.set_game()
   # set_game() #test purposes
-  # addTerritory("Alaska", 1, 1)
-  # addTerritory("Northwest Territory", 1, 1)
-  # addTerritory("Greenland", 1, 1)
-  # addTerritory("Iceland", 1, 1)
+  game.addTerritory(None, "Alaska", 1, 2)
+  game.addTerritory(None, "Northwest Territory", 1, 5)
+  game.addTerritory(None, "Greenland", 2, 1)
+  game.addTerritory("Alaska", "Northwest Territory", 1, 1)
   # addTerritory("Ontario", 1, 1)
   # addTerritory("Western United States", 1, 1)
   # addTerritory("Ukraine", 1, 1)
