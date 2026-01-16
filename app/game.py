@@ -282,30 +282,22 @@ def attackTerritory(territory, attacker, origin):
 	db = sqlite3.connect(DB_FILE)
 	c = db.cursor()
 	defender = 0
+	outcome = False
 	for i in range(5):
 		if check(territory, i + 1):
 			defender = i + 1
 	if territory in availableAttack(origin, attacker):
 		defendArmy = c.execute("SELECT armies FROM territories WHERE name = ?", (territory, )).fetchone()[0]
 		attackArmy = c.execute("SELECT armies FROM territories WHERE name = ?", (origin, )).fetchone()[0]
-		print(defendArmy)
-		print(attackArmy)
-		if (random.randint(0,1) == 1): #attack success
+		if (random.randint(0,10) > 4): #attack success
+			outcome = True
 			defendArmy -= 1
 			c.execute("UPDATE territories SET armies = ? WHERE name = ?", (defendArmy, territory))
 			print("success")
-			print(defendArmy)
-			print(attackArmy)
-			print(origin)
-			print(territory)
 		else: #attack fail
 			attackArmy -= 1
 			c.execute("UPDATE territories SET armies = ? WHERE name = ?", (attackArmy, origin))
 			print("fail")
-			print(defendArmy)
-			print(attackArmy)
-			print(origin)
-			print(territory)
 		armies = c.execute(f'SELECT armies FROM games').fetchone()[0].split(', ')
 		armies[defender - 1] = str(defendArmy)
 		armies[attacker - 1] = str(attackArmy)
@@ -316,6 +308,7 @@ def attackTerritory(territory, attacker, origin):
 		c.execute("UPDATE games SET armies = ?", (update, ))
 	db.commit()
 	db.close()
+	return outcome
 
 def check(territory, player): #checks if given player owns that territory
 	DB_FILE="conquest.db"
