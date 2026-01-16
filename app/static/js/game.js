@@ -32,6 +32,45 @@ let lasthighlighted = new Set();
 let phase = "setup";
 let currentPlayer = 1;
 
+const turnEl = document.querySelectorAll("turn");
+const phaseEl = document.getElementById("phase");
+const endSetupBtn = document.getElementById("endSetup");
+const resetBtn = document.getElementById("reset");
+
+function updateHud() {
+  if (phaseEl) phaseEl.textContent = `Phase: ${phase}`;
+  if (turnEl) turnEl.textContent = `Current Player: Player ${currentPlayer}`;
+}
+
+if (endSetupBtn) {
+  endSetupBtn.addEventListener("click", () => {
+    phase = "reinforcement";
+    updateHud();
+  });
+}
+
+async function resetGame() {
+  await fetch("/api/reset", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({})
+  });
+
+  phase = "setup";
+  currentPlayer = 1;
+  updateHud();
+
+  selectedId = null;
+  lasthighlighted.clear();
+
+  await updateState();
+  if (selectedEl) selectedEl.textContent = `Selected: None`;
+}
+
+if (resetBtn) {
+  resetBtn.addEventListener("click", resetGame);
+}
+
 // -- ID/Name Conversion Helpers --
 
 // helper function to convert from id
@@ -157,20 +196,24 @@ layer.querySelectorAll("path").forEach(p => {
 
   // highlight selected territory and adjacent territories
   p.addEventListener("click",async () => {
-    // unselect old territory
-    selectedId = p.id
-    
-    lasthighlighted.clear();
     const territoryName = idToName(p.id);
-    neighborsOf(territoryName).forEach(name => lasthighlighted.add(nameToId(name)));
+    const info = latestState.territories?.[territoryName];
 
-    if (await isUnoccupied(territoryName)) {
-      await placeArmy(territoryName, 1, 1); // assuming player 1 for now
-    } else {
-      repaint();
+    if (phase === "setup") {
+      if (await isUnoccupied(territoryName)) {
+        await placeArmy(territoryName, currentPlayer, 1);
+      }
+    } else if (phase === "reinforcement") {
+      if (info && info.owner === currentPlayer) {
+        await placeArmy(territoryName, currentPlayer, 1);
+      }
     }
-
-    if (selectedId) selectedEl.textContent = `Selected Territory: ${territoryName}`;
+    
+    if (info) {
+      selectedEl.textContent = `Selected: ${territoryName} | Owner: Player ${info.owner} | Troops: ${info.armies} | Phase: ${phase}`;
+    } else {
+      selectedEl.textContent = `Selected: ${territoryName} | Unoccupied | Phase: ${phase}`;
+    }
   });
 });
 

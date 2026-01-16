@@ -160,6 +160,20 @@ def state():
       }
   return jsonify(territories=out, turn=game_row[6])
 
+@app.route('/api/reset', methods=['POST'])
+def reset():
+    db = sqlite3.connect(DB_FILE)
+    c = db.cursor()
+
+    c.execute("UPDATE territories SET armies = 0")
+
+    c.execute("UPDATE games SET armies = ?, p1 = ?, p2 = ?, p3 = ?, p4 = ?, p5 = ?, p6 = ?, turn = ?", ("0, 0, 0, 0, 0, 0", "", "", "", "", "", "", 0))
+
+    db.commit()
+    db.close()
+
+    return jsonify(success=True)
+
 if __name__ == "__main__":
     initialize_db()
     app.debug = True

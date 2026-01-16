@@ -166,7 +166,7 @@ def addTerritory(home, territory, player, army): #adds # of army to a territory 
 		ownedplot = ""
 		for plot in current:
 			ownedplot += plot + ", "
-		c.execute("UPDATE games SET p2 = ?", (current[0: len(ownedplot) - 2]))
+		c.execute("UPDATE games SET p2 = ?", (ownedplot[0: len(ownedplot) - 2], ))
 	if player == 3:
 		current = c.execute(f'SELECT p3 FROM games').fetchone()[0].split(', ')
 		if current[0] == '':
@@ -174,7 +174,7 @@ def addTerritory(home, territory, player, army): #adds # of army to a territory 
 		ownedplot = ""
 		for plot in current:
 			ownedplot += plot + ", "
-		c.execute("UPDATE games SET p3 = ?", (current[0: len(ownedplot) - 2]))
+		c.execute("UPDATE games SET p3 = ?", (ownedplot[0: len(ownedplot) - 2], ))
 	if player == 4:
 		current = c.execute(f'SELECT p4 FROM games').fetchone()[0].split(', ')
 		if current[0] == '':
@@ -182,7 +182,7 @@ def addTerritory(home, territory, player, army): #adds # of army to a territory 
 		ownedplot = ""
 		for plot in current:
 			ownedplot += plot + ", "
-		c.execute("UPDATE games SET p4 = ?", (current[0: len(ownedplot) - 2]))
+		c.execute("UPDATE games SET p4 = ?", (ownedplot[0: len(ownedplot) - 2], ))
 	if player == 5:
 		current = c.execute(f'SELECT p5 FROM games').fetchone()[0].split(', ')
 		if current[0] == '':
@@ -190,7 +190,7 @@ def addTerritory(home, territory, player, army): #adds # of army to a territory 
 		ownedplot = ""
 		for plot in current:
 			ownedplot += plot + ", "
-		c.execute("UPDATE games SET p5 = ?", (current[0: len(ownedplot) - 2]))
+		c.execute("UPDATE games SET p5 = ?", (ownedplot[0: len(ownedplot) - 2], ))
 	if player == 6:
 		current = c.execute(f'SELECT p6 FROM games').fetchone()[0].split(', ')
 		if current[0] == '':
@@ -198,7 +198,7 @@ def addTerritory(home, territory, player, army): #adds # of army to a territory 
 		ownedplot = ""
 		for plot in current:
 			ownedplot += plot + ", "
-		c.execute("UPDATE games SET p6 = ?", (current[0: len(ownedplot) - 2]))
+		c.execute("UPDATE games SET p6 = ?", (ownedplot[0: len(ownedplot) - 2], ))
 	db.commit()
 	db.close()
 
