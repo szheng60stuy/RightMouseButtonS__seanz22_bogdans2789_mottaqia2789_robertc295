@@ -73,7 +73,7 @@ def register():
 
   if existing_user:
     db.close()
-    text = "Username already take!"
+    text = "Username already taken!"
     return render_template('register.html', text=text)
 
   c.execute("INSERT INTO users (username, password, games) VALUES (?, ?, ?);", (username, password, 0))
@@ -107,7 +107,9 @@ def returnMap():
 @app.route('/api/addTerritory', methods=['POST'])
 def addTerritory():
     data = request.get_json()
-    game.addTerritory(data['territory'], data['player'], data['army'])
+    home = data.get('home', None)
+    army = data.get('army', 1)
+    game.addTerritory(home, data['territory'], data['player'], army)
     return jsonify(success=True)
 
 @app.route('/api/availableSet', methods=['POST'])

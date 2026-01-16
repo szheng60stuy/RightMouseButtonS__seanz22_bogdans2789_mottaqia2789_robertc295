@@ -53,11 +53,11 @@ map_info = {
     "Mongolia": ["Asia", "Siberia", "Irkutsk", "Kamchatka", "Japan", "China"],
     "Japan": ["Asia", "Kamchatka", "Mongolia"],
     "Afghanistan": ["Asia", "Ukraine", "Ural", "China", "India", "Middle East"],
-    "Middle East": ["Asia", "Southern Europe", "Egypt", "East Africa", "Afghanistan", "India"],
+    "Middle East": ["Asia", "Southern Europe", "Egypt", "East Africa", "Afghanistan", "India", "Ukraine"],
     "India": ["Asia", "Middle East", "Afghanistan", "China", "Siam"],
     "China": ["Asia", "Ural", "Siberia", "Mongolia", "India", "Siam", "Afghanistan"],
     "Siam": ["Asia", "India", "China", "Indonesia"],
-    "Ukraine": ["Asia", "Scandinavia", "Northern Europe", "Southern Europe", "Ural", "Afghanistan"],
+    "Ukraine": ["Asia", "Scandinavia", "Northern Europe", "Southern Europe", "Ural", "Afghanistan", "Middle East"],
 
     # --- Australia ---
     "Indonesia": ["Australia", "Siam", "New Guinea", "Western Australia"],
@@ -148,7 +148,7 @@ def addTerritory(home, territory, player, army): #adds # of army to a territory 
 	c.execute("UPDATE territories SET armies = ? WHERE name = ?", (current + army, territory))
 	if home != None:
 		current = c.execute("SELECT armies FROM territories WHERE name = ?", (home, )).fetchone()[0]
-		c.execute("UPDATE territories SET armies = ? WHERE name = ?", (current + army, home))
+		c.execute("UPDATE territories SET armies = ? WHERE name = ?", (current - army, home))
 	if player == 1:
 		current = c.execute(f'SELECT p1 FROM games').fetchone()[0].split(', ')
 		if current[0] == '':
@@ -253,7 +253,7 @@ def aMoveHelp(territory, player, tried): #helper function for availableMove
 
 def availableMove(territory, player): #returns list of territories available for movement given a chosen territory and player
 	nestedList = aMoveHelp(territory, player, [territory]) #this returns a nested list like ['Northwest Territory', ['Alaska'], ['Ontario', ['Greenland', ['Iceland']], ['Western United States']]]
-	return flatten(nestedListcontBonus)
+	return flatten(nestedList)
 
 def attackTerritory(territory, player, origin):
 	DB_FILE="conquest.db"
