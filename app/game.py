@@ -399,4 +399,11 @@ def getPlayers():
 	result = c.execute(f'SELECT armies FROM games').fetchone()[0].split(', ')
 	return result
 
-print(getPlayers())
+#print(getPlayers())
+# addTerritory(None, "Alaska", 1, 1)
+# addTerritory(None, "Northwest Territory", 1, 1)
+# addTerritory(None, "Greenland", 1, 1)
+# addTerritory(None, "Iceland", 1, 1)
+# addTerritory(None, "Ontario", 1, 1)
+# addTerritory(None, "Western United States", 1, 1)
+# addTerritory(None, "Ukraine", 1, 1)
