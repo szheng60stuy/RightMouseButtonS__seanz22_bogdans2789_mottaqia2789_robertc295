@@ -7,7 +7,7 @@ const PLAYER_COLORS = {
   3: "#d6ffd9",
   4: "#fff3b0",
   5: "#e3d6ff",
-  6: "#ffdca8",
+  6: "#7f70ff",
 };
 
 function baseColorFor(id) {
@@ -31,6 +31,7 @@ let lasthighlighted = new Set();
 
 let phase = "setup";
 let currentPlayer = 1;
+let playerCount = 2;
 
 let moveOrigin = null;
 let moveTarget = new Set();
@@ -182,11 +183,6 @@ async function updateState() {
 
 // -- Rendering / UI Updates --
 
-function getSlider()
-{
-  playerNum = document.getElementById('rangeValue').value;
-}
-
 function applyState(state) {
   for (const [territory, info] of Object.entries(state.territories)) {
     const id = nameToId(territory);
@@ -244,6 +240,10 @@ function highlightAdjacent(neighbors) {
 // -- Init / Event Listeners --
 async function init() {
   await loadMap();
+
+  const start = await fetch("/api/start", { method: "POST" }).then(r => r.json()); // initialize game state
+  playerCount = start.players || 2;
+
   updateHud();
   await updateState();
 }
@@ -287,13 +287,11 @@ layer.querySelectorAll("path").forEach(p => {
       }).then(r => r.json());
     
       if (data.out.length === 0) {
-        const start = await fetch("/api/start", { method: "POST" }).then(r => r.json());
-        currentPlayer = start.turn;
         phase = "deploy";
         updateHud();
         await updateState();
       } else {
-        currentPlayer = (currentPlayer % 2) + 1;
+        currentPlayer = (currentPlayer % playerCount) + 1;
         updateHud();
       }
     }

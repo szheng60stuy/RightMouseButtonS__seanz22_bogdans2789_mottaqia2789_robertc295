@@ -94,6 +94,12 @@ def register():
 def menu():
     if 'username' not in session:
         return redirect(url_for('login'))
+    
+    if request.method == "POST":
+        players = int(request.form.get("players", 2))
+        players = max(2, min(players, 6))
+        session['players'] = players
+
     return render_template("menu.html", username=session['username'])
 
 @app.route("/logout", methods=["GET"])
@@ -109,12 +115,20 @@ def game_test():
 
 @app.route("/api/start", methods=['POST'])
 def start():
+    players = session.get('players', 2)
+
+    startingArmies = {2:40, 3:35, 4:30, 5:25, 6:20}
+    starting = startingArmies[players]
+
+    pools = [starting] * players + [0] * (6 - players)
+    armiesStr = ", ".join(str(x) for x in pools)
+
     db = sqlite3.connect(DB_FILE)
     c = db.cursor()
-    c.execute("UPDATE games SET turn = ?", (1,))
+    c.execute("UPDATE games SET turn = ?, armies = ?", (1, armiesStr))
     db.commit()
     db.close()
-    return jsonify(success=True, turn=1)
+    return jsonify(success=True, players=players, armies=pools)
 
 @app.route("/api/map", methods=['GET'])
 def returnMap():
@@ -199,10 +213,11 @@ def state():
 
 @app.route('/api/endTurn', methods=['POST'])
 def endTurn():
+   players = session.get('players', 2)
    db = sqlite3.connect(DB_FILE)
    c = db.cursor()
    turn = c.execute("SELECT turn FROM games").fetchone()[0]
-   nextTurn = (turn % 2) + 1
+   nextTurn = (turn % players) + 1
    c.execute("UPDATE games SET turn = ?", (nextTurn,))
    db.commit()
    db.close()

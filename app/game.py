@@ -191,6 +191,7 @@ def addTerritory(home, territory, player, army): #adds # of army to a territory 
 			for plot in current:
 				ownedplot += plot + ", "
 			c.execute("UPDATE games SET p3 = ?", (ownedplot[0: len(ownedplot) - 2], ))
+		if player == 4:
 			current = c.execute('SELECT p4 FROM games').fetchone()[0].split(', ')
 			if current[0] == '':
 				current[0] = territory.strip()
