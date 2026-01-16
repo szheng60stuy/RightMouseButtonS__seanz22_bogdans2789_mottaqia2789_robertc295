@@ -134,7 +134,7 @@ def attackTerritory():
 @app.route('/api/availableAttack', methods=['POST'])
 def availableAttack():
     data = request.get_json()
-    out = game.availableAttack(data['player'])
+    out = game.availableAttack(data['territory'], data['player'])
     return jsonify(out=out)
 
 @app.route('/api/state', methods=['GET'])
