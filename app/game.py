@@ -255,7 +255,7 @@ def attackTerritory(territory, player, origin):
 	DB_FILE="conquest.db"
 	db = sqlite3.connect(DB_FILE)
 	c = db.cursor()
-	if (origin in c.execute(f'SLECT connected FROM territories WHERE name = {territory}')):
+	if (territory in availableAttack(player)):
 		if (random.randint(0,1) == 1): #attack success
 			armiesOrig = c.execute(f'SELECT armies FROM territories WHERE name = {origin}')-1
 			if (armiesOrig<1):

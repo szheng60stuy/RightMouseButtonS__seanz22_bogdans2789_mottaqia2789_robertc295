@@ -111,9 +111,16 @@ def availableMove():
     out = game.availableMove(data['territory'], data['player'])
     return jsonify(out=out)
 
-@app.route('/set_game', methods=['POST'])
-def set_game():
-    game.set_game()
+@app.route('/attackTerritory', methods=['POST'])
+def attackTerritory():
+    data = request.get_json()
+    game.attackTerritory(data['territory'], data['player'], data['origin'])
+
+@app.route('/availableAttack', methods=['POST'])
+def availableAttack():
+    data = request.get_json()
+    out = game.availableAttack(data['player'])
+    return jsonify(out=out)
 
 if __name__ == "__main__":
     initialize_db()
