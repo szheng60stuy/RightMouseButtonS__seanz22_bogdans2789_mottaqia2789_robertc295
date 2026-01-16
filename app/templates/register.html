@@ -7,33 +7,39 @@
     </head>
 
 <div class="text-center">
-
 {% extends "base.html" %}
-{% block title %}Register | Conquest{% endblock %}
+{% block title %}Login | Conquest{% endblock %}
 
 {% block content %}
-<h1>Register</h1>
+<h1>Login</h1>
 
 {%if text%}
   <p style="color:red;">{{ text }}</p>
 {% endif %}
 
 <form action="{{ url_for('register') }}" method="POST">
-  <div>
-    <label>Username</label>
-    <input type="text" name="username" required>
-  </div>
+<div class="d-inline-flex p-2">
+<div class="form-floating mb-3">
+  <input type="text" class="form-control" name="username" id="username" placeholder="Username">
+  <label for="floatingInput">Username</label>
+</div>
+</div>
+<br>
+<div class="d-inline-flex p-2">
+<div class="form-floating">
+  <input type="password" class="form-control" name="password" id="password" placeholder="password">
+  <label for="floatingPassword">Password</label>
+</div>
+</div>
 
-  <div>
-    <label>Password</label>
-    <input type="password" name="password" required>
-  </div>
-
-  <button type="submit">Create Account</button>
+<br>
+  <button type="submit" class="btn btn-outline-light">Register</button>
 </form>
-
+<br>
 <p>
-  Already have an account? <a href="{{ url_for('login') }}">Login here</a>.
+  Already have an account?<br>
+<a class="btn btn-outline-primary" href="{{ url_for('login') }}" role="button">Login here</a> 
 </p>
+
 {% endblock %}
 </div>

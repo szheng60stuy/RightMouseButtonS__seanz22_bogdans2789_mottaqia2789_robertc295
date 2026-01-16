@@ -15,10 +15,32 @@
 
 <p>Welcome, {{ username }}!</p>
 
+
+<label for="range3" class="form-label">Player Count</label><br>
+<div class="d-inline-flex p-2">
+<input type="range" class="form-range" min="2" max="6" step="1" id="range3">
+</div>
+<br>
+<output for="range3" id="rangeValue" aria-hidden="true"></output>
+
+
+<script>
+  const rangeInput = document.getElementById('range3');
+  const rangeOutput = document.getElementById('rangeValue');
+
+  rangeOutput.textContent = rangeInput.value;
+
+  rangeInput.addEventListener('input', function() {
+    rangeOutput.textContent = this.value;
+  });
+</script>
+
+
 <ul>
   <li><a href="#">New Game</a></li>
-  <li><a href="#">Continue Game</a></li>
   <li><a href="#">Rules</a></li>
 </ul>
 {% endblock %}
+
 </div>
+
