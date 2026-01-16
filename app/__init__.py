@@ -124,8 +124,8 @@ def availableMove():
 @app.route('/api/attackTerritory', methods=['POST'])
 def attackTerritory():
     data = request.get_json()
-    game.attackTerritory(data['territory'], data['player'], data['origin'])
-    return jsonify(success=True)
+    out = game.attackTerritory(data['territory'], data['player'], data['origin'])
+    return jsonify(out=out)
 
 @app.route('/api/availableAttack', methods=['POST'])
 def availableAttack():
